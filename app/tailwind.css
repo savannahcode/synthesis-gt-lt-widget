@@ -34,24 +34,24 @@ body {
 }
 
 .container {
-  width: 100px;
-  height: 100px;
+  width: 40px;
+  height: 40px;
   perspective: 500px;
   /* margin: 100px; */
 }
 
 .cube {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 40px;
+  height: 40px;
   transform-style: preserve-3d;
   /* transform: rotate3d(1, 1, 0, 45deg); */
   transform: rotateX(-35deg) rotateY(45deg)
 }
 
 .face {
-  width: 100px;
-  height: 100px;
+  width: 40px;
+  height: 40px;
   position: absolute;
   display: flex;
   align-items: center;
@@ -61,31 +61,31 @@ body {
 }
 
 .front {
-  transform: translateZ(50px);
+  transform: translateZ(20px);
   background: #387ab7;
 }
 
 .back {
-  transform: translateZ(-50px) rotateY(180deg);
+  transform: translateZ(-20px) rotateY(180deg);
   background: #387ab7;
 }
 
 .left {
-  transform: translateX(-50px) rotateY(-90deg);
+  transform: translateX(-20px) rotateY(-90deg);
   background-color: #c4f2ef;
 }
 
 .right {
-  transform: translateX(50px) rotateY(90deg);
+  transform: translateX(20px) rotateY(90deg);
   background-color: #c4f2ef;
 }
 
 .top {
-  transform: translateY(-50px) rotateX(90deg);
+  transform: translateY(-20px) rotateX(90deg);
   background-color: #7dcfe2;
 }
 
 .bottom {
-  transform: translateY(50px) rotateX(-90deg);
+  transform: translateY(20px) rotateX(-90deg);
   background-color: #7dcfe2;
 }
