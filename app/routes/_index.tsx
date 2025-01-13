@@ -1,7 +1,8 @@
 import type { MetaFunction } from "@remix-run/node";
 import { motion } from "motion/react"
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Button, Input, Typography } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Button, Input, Radio, Space, Tooltip, Typography } from "antd";
+import { Ban, Diff, PencilRuler, Play } from 'lucide-react';
 import Canvas from './Canvas/Canvas'
 
 export const meta: MetaFunction = () => {
@@ -16,8 +17,9 @@ export default function Index() {
   const [numSquaresTwo, setNumSquaresTwo] = useState(2)
   const [statusOne, setStatusOne] = useState<undefined | 'error'>(undefined);
   const [statusTwo, setStatusTwo] = useState<undefined | 'error'>(undefined);
+  const [interaction, setInteraction] = useState<'none' | 'addRemove' | 'drawCompare'>('none')
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [availableHeight, setAvailableHeight] = useState(300); // Default value
+  const [availableHeight, setAvailableHeight] = useState(300);
 
   const draw = (context: { clearRect: (arg0: number, arg1: number, arg2: any, arg3: any) => void; canvas: { width: any; height: any; }; fillStyle: string; fillRect: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }, count: number) => {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height)
@@ -112,66 +114,78 @@ export default function Index() {
                     <div className="face back"></div>
                   </div>
                 </motion.div>))}
-
             </div>
-
           </div>
-
         </div>
-
       </div>
       <div className="controlPanel border m-10 p-3 rounded-md h-1/4">
-        <Typography.Title level={3} className="text-white">Control Panel</Typography.Title>
-        <h4>Stack 1</h4>
-        <div className="flex gap-2">
-          {/* <Button disabled={numSquaresOne >= 10} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
-          <Input
-            style={{ width: '45px' }}
-            count={{
-              show: false,
-              max: 2,
-              strategy: (txt) => txt.length,
-              exceedFormatter: (txt, { max }) => txt.slice(0, max),
-            }}
-            status={statusOne}
-            onChange={(e) => {
-              const value = e.target.value.trim();
-              const isValidNumber = /^[1-9]\d*$/;
-              if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
-                setStatusOne(undefined)
-                setNumSquaresOne(parseInt(e.target.value))
-              } else {
-                setStatusOne('error')
-              }
-            }}
-            defaultValue={numSquaresOne} />
-          {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
-        </div>
-        <h4>Stack 2</h4>
-        <div className="flex gap-2">
-          {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
-          <Input
-            style={{ width: '45px' }}
-            count={{
-              show: false,
-              max: 2,
-              strategy: (txt) => txt.length,
-              exceedFormatter: (txt, { max }) => txt.slice(0, max),
-            }}
-            status={statusTwo}
-            onChange={(e) => {
-              const value = e.target.value.trim();
-              const isValidNumber = /^[1-9]\d*$/;
-              if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
+        <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title>
+        <div className="flex justify-between my-3">
+          <div className="flex gap-2">
+            <h4>Stack 1</h4>
+            {/* <Button disabled={numSquaresOne >= 10} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
+            {interaction === 'addRemove' ? (<Input
+              style={{ width: '45px' }}
+              count={{
+                show: false,
+                max: 2,
+                strategy: (txt) => txt.length,
+                exceedFormatter: (txt, { max }) => txt.slice(0, max),
+              }}
+              status={statusOne}
+              onChange={(e) => {
+                const value = e.target.value.trim();
+                const isValidNumber = /^[1-9]\d*$/;
+                if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
+                  setStatusOne(undefined)
+                  setNumSquaresOne(parseInt(e.target.value))
+                } else {
+                  setStatusOne('error')
+                }
+              }}
+              defaultValue={numSquaresOne} />) : (<Typography.Text>{numSquaresOne}</Typography.Text>)}
+            {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
+          </div>
+          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!"><Button icon={<Play />} className="content-center pt-1" size="large" /></Tooltip>
 
-                setStatusTwo(undefined)
-                setNumSquaresTwo(parseInt(value))
-              } else {
-                setStatusTwo('error')
-              }
-            }}
-            defaultValue={numSquaresTwo} />
-          {/* <Button disabled={numSquaresTwo <= 1} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
+          <div className="flex gap-2">
+            <h4>Stack 2</h4>
+            {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
+            {interaction === 'addRemove' ? (<Input
+              style={{ width: '45px' }}
+              count={{
+                show: false,
+                max: 2,
+                strategy: (txt) => txt.length,
+                exceedFormatter: (txt, { max }) => txt.slice(0, max),
+              }}
+              status={statusTwo}
+              onChange={(e) => {
+                const value = e.target.value.trim();
+                const isValidNumber = /^[1-9]\d*$/;
+                if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
+
+                  setStatusTwo(undefined)
+                  setNumSquaresTwo(parseInt(value))
+                } else {
+                  setStatusTwo('error')
+                }
+              }}
+              defaultValue={numSquaresTwo} />) : (<Typography.Text>{numSquaresTwo}</Typography.Text>)}
+            {/* <Button disabled={numSquaresTwo <= 1} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-center gap-3">
+            <h4>Interaction Mode:</h4>
+            <Space>
+              <Radio.Group value={interaction} onChange={(e) => setInteraction(e.target.value)}>
+                <Radio.Button value="none" className="content-center"><Tooltip title='None'><Ban /></Tooltip></Radio.Button>
+                <Radio.Button value="addRemove" className="content-center"><Tooltip title='Add / Remove'><Diff /></Tooltip></Radio.Button>
+                <Radio.Button value="drawCompare" className="content-center"><Tooltip title='Draw / Compare'><PencilRuler /></Tooltip></Radio.Button>
+              </Radio.Group>
+            </Space>
+          </div>
         </div>
       </div>
     </div>
