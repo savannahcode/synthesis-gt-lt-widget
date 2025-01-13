@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const Canvas = (props: { [x: string]: any; }) => {
-    const { ...rest } = props
+    const { availableHeight, ...rest } = props
     // const ref = useCanvas(draw)
 
     const canvasReference = useRef<HTMLCanvasElement | null>(null);
@@ -13,6 +13,8 @@ const Canvas = (props: { [x: string]: any; }) => {
         const canvas = canvasReference.current
         if (canvas) {
             const context = canvas.getContext("2d")
+            canvas.width = window.innerWidth;
+            canvas.height = availableHeight;
             if (context) {
                 context.lineCap = "round"
                 context.strokeStyle = 'white'

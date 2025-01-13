@@ -18,12 +18,14 @@ export default function Index() {
   const [statusOne, setStatusOne] = useState<undefined | 'error'>(undefined);
   const [statusTwo, setStatusTwo] = useState<undefined | 'error'>(undefined);
   const [interaction, setInteraction] = useState<'none' | 'addRemove' | 'drawCompare'>('none')
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const boxesContainerRef = useRef<HTMLDivElement | null>(null);
+  const canvasHeightRef = useRef<HTMLDivElement | null>(null);
   const [availableHeight, setAvailableHeight] = useState(300);
 
+
   useEffect(() => {
-    if (containerRef.current) {
-      const containerHeight = containerRef.current.clientHeight;
+    if (boxesContainerRef.current) {
+      const containerHeight = boxesContainerRef.current.clientHeight;
       setAvailableHeight(containerHeight);
     }
   }, []);
@@ -66,26 +68,27 @@ export default function Index() {
     <div className="gradient-bg h-screen flex flex-col">
       {interaction === 'drawCompare' && <Canvas
         // draw={draw}
+        availableHeight={canvasHeightRef.current?.clientHeight}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100vw",
-          height: "100vh",
+          // width: "100%",
+          // height: "100%",
           zIndex: 9999, // Ensures it is above everything else
           //pointerEvents: "none", // Prevents it from interfering with clicks if it's decorative
         }}
       />}
 
-      <div className="flex items-center justify-center w-1/3 m-auto flex-1">
+      <div className="flex items-center justify-center w-1/3 m-auto flex-1" ref={canvasHeightRef}>
         <div className="flex flex-col items-center gap-16 w-full h-full">
           <div className="flex items-center justify-between w-full h-full">
             <div className={`flex flex-col items-center justify-center h-5/6`}
-              ref={containerRef}
+              ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
-                <motion.div className={`container floating`} key={index}
+                <div className={`container floating`} key={index}
                   style={{
                     zIndex: numSquaresOne - index,
                   }}>
@@ -97,13 +100,13 @@ export default function Index() {
                     <div className="face front"></div>
                     <div className="face back"></div>
                   </div>
-                </motion.div>))}
+                </div>))}
 
             </div>
             <div className={`flex flex-col items-center justify-center h-5/6`}
               style={{ gap: `${gapForLargerStack}px` }}>
               {Array(numSquaresTwo).fill('').map((_, index) => (
-                <motion.div className="container floating" key={index}
+                <div className="container floating" key={index}
                   style={{
                     zIndex: numSquaresTwo - index,
                   }}>
@@ -115,12 +118,12 @@ export default function Index() {
                     <div className="face front"></div>
                     <div className="face back"></div>
                   </div>
-                </motion.div>))}
+                </div>))}
             </div>
           </div>
         </div>
       </div>
-      <div className="controlPanel border m-10 p-3 rounded-md h-1/4">
+      <div className="controlPanel border m-10 p-3 rounded-md h-1/4 mt-0">
         <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title>
         <div className="flex justify-between my-3">
           <div className="flex gap-2">
