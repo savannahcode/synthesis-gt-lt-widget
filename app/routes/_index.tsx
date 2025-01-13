@@ -2,7 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react";
 import { Button, Input, Radio, Space, Tooltip, Typography } from "antd";
-import { Ban, Diff, PencilRuler, Play } from 'lucide-react';
+import icons from './icons'
 import Canvas from './Canvas/Canvas'
 
 export const meta: MetaFunction = () => {
@@ -148,7 +148,7 @@ export default function Index() {
               defaultValue={numSquaresOne} />) : (<Typography.Text>{numSquaresOne}</Typography.Text>)}
             {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
           </div>
-          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!"><Button icon={<Play />} className="content-center pt-1" size="large" /></Tooltip>
+          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!"><Button icon={icons['Play']} className="content-center pt-1" size="large" /></Tooltip>
 
           <div className="flex gap-2">
             <h4>Stack 2</h4>
@@ -182,9 +182,9 @@ export default function Index() {
             <h4>Interaction Mode:</h4>
             <Space>
               <Radio.Group value={interaction} onChange={(e) => setInteraction(e.target.value)}>
-                <Radio.Button value="none" className="content-center"><Tooltip title='None'><Ban /></Tooltip></Radio.Button>
-                <Radio.Button value="addRemove" className="content-center"><Tooltip title='Add / Remove'><Diff /></Tooltip></Radio.Button>
-                <Radio.Button value="drawCompare" className="content-center"><Tooltip title='Draw / Compare'><PencilRuler /></Tooltip></Radio.Button>
+                <Radio.Button value="none" className="content-center"><Tooltip title='None'>{icons['Ban']}</Tooltip></Radio.Button>
+                <Radio.Button value="addRemove" className="content-center"><Tooltip title='Add / Remove'>{icons['Diff']}</Tooltip></Radio.Button>
+                <Radio.Button value="drawCompare" className="content-center"><Tooltip title='Draw / Compare'>{icons['PencilRuler']}</Tooltip></Radio.Button>
               </Radio.Group>
             </Space>
           </div>
