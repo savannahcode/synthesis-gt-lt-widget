@@ -21,13 +21,6 @@ export default function Index() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [availableHeight, setAvailableHeight] = useState(300);
 
-  const draw = (context: { clearRect: (arg0: number, arg1: number, arg2: any, arg3: any) => void; canvas: { width: any; height: any; }; fillStyle: string; fillRect: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }, count: number) => {
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-    context.fillStyle = 'grey'
-    const delta = count % 800
-    context.fillRect(10 + delta, 10, 100, 100)
-  }
-
   useEffect(() => {
     if (containerRef.current) {
       const containerHeight = containerRef.current.clientHeight;
@@ -61,10 +54,18 @@ export default function Index() {
     gapForLargerStack
   );
 
+  // const draw = (context: { clearRect: (arg0: number, arg1: number, arg2: any, arg3: any) => void; canvas: { width: any; height: any; }; fillStyle: string; fillRect: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }, count: number) => {
+  //   context.clearRect(0, 0, context.canvas.width, context.canvas.height)
+  //   context.fillStyle = 'grey'
+  //   const delta = count % 800
+  //   context.fillRect(10 + delta, 10, 100, 100)
+  // }
+
+
   return (
     <div className="gradient-bg h-screen flex flex-col">
-      {/* <Canvas
-        draw={draw}
+      {interaction === 'drawCompare' && <Canvas
+        // draw={draw}
         style={{
           position: "absolute",
           top: 0,
@@ -72,8 +73,9 @@ export default function Index() {
           width: "100vw",
           height: "100vh",
           zIndex: 9999, // Ensures it is above everything else
-          pointerEvents: "none", // Prevents it from interfering with clicks if it's decorative
-        }} /> */}
+          //pointerEvents: "none", // Prevents it from interfering with clicks if it's decorative
+        }}
+      />}
 
       <div className="flex items-center justify-center w-1/3 m-auto flex-1">
         <div className="flex flex-col items-center gap-16 w-full h-full">

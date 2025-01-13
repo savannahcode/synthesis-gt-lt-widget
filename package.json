@@ -14,6 +14,7 @@
     "@remix-run/node": "^2.15.2",
     "@remix-run/react": "^2.15.2",
     "@remix-run/serve": "^2.15.2",
+    "@use-gesture/react": "^10.3.1",
     "antd": "^5.23.0",
     "isbot": "^4.1.0",
     "lucide-react": "^0.471.0",
