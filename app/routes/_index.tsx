@@ -77,29 +77,22 @@ export default function Index() {
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
-  const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo') => {
+  useEffect(() => { console.log(numSquaresOne) }, [numSquaresOne])
 
-    // Set the opacity based on the drag distance
-    const dragDistance = Math.abs(info.offset.x) + Math.abs(info.offset.y);
+  const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo', index: number) => {
+    const threshold = 100; // Define a threshold for drag distance
 
-    // If the drag distance exceeds a threshold, fade out and decrease numSquaresOne
-    if (numSquares === 'numSquaresOne') {
-      if (dragDistance > 200 && numSquaresOne > 1) {
-        setNumSquaresOne((prev) => { return prev - 1 });
-      }
-    } else {
-      if (dragDistance > 200 && numSquaresTwo > 1) {
-        setNumSquaresTwo((prev) => { return prev - 1 });
+    // Check if the square has been dragged sufficiently
+    if (Math.abs(info.offset.y) > threshold) {
+      if (numSquares === 'numSquaresOne' && numSquaresOne > 1) {
+        setNumSquaresOne((prev) => prev - 1); // Remove dragged square from numSquaresOne
+      } else if (numSquares === 'numSquaresTwo' && numSquaresTwo > 1) {
+        setNumSquaresTwo((prev) => prev - 1); // Remove dragged square from numSquaresTwo
       }
     }
-    return {
-      opacity: dragDistance > 200 ? 0 : 1,  // Fade out isn't working yet
-    };
   };
 
-  const showDrawer = () => {
-    setOpen(true);
-  };
+
 
   const onClose = () => {
     setOpen(false);
@@ -188,9 +181,11 @@ export default function Index() {
               onClick={() => { if (interaction === 'addRemove' && numSquaresTwo < 10) { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
-                <motion.div className={`container floating`} key={index} animate={{ scale: 1 }} drag
-                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresOne') }}
+                <motion.div className={`container ${interaction !== 'addRemove' && 'floating'}`} key={index} animate={{ scale: 1 }} drag={interaction === 'addRemove'}
+                  exit={{ opacity: 0 }}
+                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresOne', index) }}
                   ref={index === 0 ? stackOneTopSquare : index === numSquaresOne - 1 ? stackOneBottomSquare : null}
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     zIndex: numSquaresOne - index,
                   }}>
@@ -203,15 +198,17 @@ export default function Index() {
                     <div className="face back"></div>
                   </div>
                 </motion.div>))}
-
             </div>
             <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn'
               style={{ gap: `${gapForLargerStack}px` }}
               onClick={() => { if (interaction === 'addRemove' && numSquaresTwo < 10) { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
             >
               {Array(numSquaresTwo).fill('').map((_, index) => (
-                <motion.div className="container floating" key={index} animate={{ scale: 1 }} drag
-                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresTwo') }}
+                <motion.div className={`container ${interaction !== 'addRemove' && 'floating'}`} key={index} animate={{ scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  drag={interaction === 'addRemove'}
+                  onClick={(e) => e.stopPropagation()}
+                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresTwo', index) }}
                   ref={index === 0 ? stackTwoTopSquare : index === numSquaresTwo - 1 ? stackTwoBottomSquare : null}
                   style={{
                     zIndex: numSquaresTwo - index,
@@ -255,10 +252,10 @@ export default function Index() {
 
                   if (isValidNumber.test(tempNumSquaresOneValue) && parsedValue > 0 && parsedValue <= 10) {
                     setStatusTwo(undefined);
-                    setNumSquaresTwo(parsedValue);
+                    setNumSquaresOne(parsedValue);
                   } else {
                     setStatusTwo('error');
-                    setTempNumSquaresOneValue(String(numSquaresTwo));
+                    setTempNumSquaresOneValue(String(numSquaresOne));
                   }
                 }}
               //defaultValue={numSquaresOne} 
