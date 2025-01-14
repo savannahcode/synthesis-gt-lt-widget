@@ -1,14 +1,14 @@
 import type { MetaFunction } from "@remix-run/node";
 import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react";
-import { Button, Input, Radio, Space, Tooltip, Typography } from "antd";
+import { Button, Divider, Input, Radio, Space, Tooltip, Typography } from "antd";
 import icons from './icons'
 import Canvas from './Canvas/Canvas'
 
 export const meta: MetaFunction = () => {
   return [
     { title: "Synthesis Widget App" },
-    { name: "description", content: "Sav's comparison widget for the application process to Synthesis!" },
+    { name: "description", content: "Sav's comparison widget for the application process to Synthesis" },
   ];
 };
 
@@ -20,13 +20,14 @@ export default function Index() {
   const [interaction, setInteraction] = useState<'none' | 'addRemove' | 'drawCompare'>('none')
   const boxesContainerRef = useRef<HTMLDivElement | null>(null);
   const canvasHeightRef = useRef<HTMLDivElement | null>(null);
-  const [availableHeight, setAvailableHeight] = useState(300);
+  const [boxesAvailableHeight, setBoxesAvailableHeight] = useState(300);
+  let canvasAvailableHight = canvasHeightRef.current?.clientHeight
 
 
   useEffect(() => {
     if (boxesContainerRef.current) {
       const containerHeight = boxesContainerRef.current.clientHeight;
-      setAvailableHeight(containerHeight);
+      setBoxesAvailableHeight(containerHeight);
     }
   }, []);
 
@@ -47,7 +48,7 @@ export default function Index() {
   };
 
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
-  const gapForLargerStack = calculateGap(largerStackSquares, availableHeight);
+  const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
   // Calculate the height for both stacks based on the gap
   const heightForLargerStack = getStackHeight(largerStackSquares, gapForLargerStack);
@@ -56,34 +57,24 @@ export default function Index() {
     gapForLargerStack
   );
 
-  // const draw = (context: { clearRect: (arg0: number, arg1: number, arg2: any, arg3: any) => void; canvas: { width: any; height: any; }; fillStyle: string; fillRect: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }, count: number) => {
-  //   context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-  //   context.fillStyle = 'grey'
-  //   const delta = count % 800
-  //   context.fillRect(10 + delta, 10, 100, 100)
-  // }
-
-
   return (
-    <div className="gradient-bg h-screen flex flex-col">
-      {interaction === 'drawCompare' && <Canvas
-        // draw={draw}
-        availableHeight={canvasHeightRef.current?.clientHeight}
+    <div className="gradient-bg h-screen flex flex-col content">
+      <Canvas
+        interaction={interaction}
+        availableHeight={canvasAvailableHight}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
-          // width: "100%",
-          // height: "100%",
           zIndex: 9999, // Ensures it is above everything else
-          //pointerEvents: "none", // Prevents it from interfering with clicks if it's decorative
+          pointerEvents: interaction !== 'drawCompare' ? 'none' : 'auto'
         }}
-      />}
+      />
 
       <div className="flex items-center justify-center w-1/3 m-auto flex-1" ref={canvasHeightRef}>
         <div className="flex flex-col items-center gap-16 w-full h-full">
           <div className="flex items-center justify-between w-full h-full">
-            <div className={`flex flex-col items-center justify-center h-5/6`}
+            <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
               ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
             >
@@ -103,7 +94,7 @@ export default function Index() {
                 </div>))}
 
             </div>
-            <div className={`flex flex-col items-center justify-center h-5/6`}
+            <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
               style={{ gap: `${gapForLargerStack}px` }}>
               {Array(numSquaresTwo).fill('').map((_, index) => (
                 <div className="container floating" key={index}
@@ -123,40 +114,45 @@ export default function Index() {
           </div>
         </div>
       </div>
-      <div className="controlPanel border m-10 p-3 rounded-md h-1/4 mt-0">
-        <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title>
-        <div className="flex justify-between my-3">
+      <Divider style={{ borderColor: 'white' }} className="m-0" />
+      {/* <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title> */}
+      <div className="flex flex-col mb-5">
+        <div className="flex justify-between gap-5 items-center p-3 h-fit my-5 w-1/3 mx-auto">
           <div className="flex gap-2">
-            <h4>Stack 1</h4>
             {/* <Button disabled={numSquaresOne >= 10} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
-            {interaction === 'addRemove' ? (<Input
-              style={{ width: '45px' }}
-              count={{
-                show: false,
-                max: 2,
-                strategy: (txt) => txt.length,
-                exceedFormatter: (txt, { max }) => txt.slice(0, max),
-              }}
-              status={statusOne}
-              onChange={(e) => {
-                const value = e.target.value.trim();
-                const isValidNumber = /^[1-9]\d*$/;
-                if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
-                  setStatusOne(undefined)
-                  setNumSquaresOne(parseInt(e.target.value))
-                } else {
-                  setStatusOne('error')
-                }
-              }}
-              defaultValue={numSquaresOne} />) : (<Typography.Text>{numSquaresOne}</Typography.Text>)}
+            {interaction === 'addRemove' ?
+              (<Input
+                className="h-fit mb-3 bg-cyan-100"
+                style={{ width: '45px' }}
+                count={{
+                  show: false,
+                  max: 2,
+                  strategy: (txt) => txt.length,
+                  exceedFormatter: (txt, { max }) => txt.slice(0, max),
+                }}
+                status={statusOne}
+                onChange={(e) => {
+                  const value = e.target.value.trim();
+                  const isValidNumber = /^[1-9]\d*$/;
+                  if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
+                    setStatusOne(undefined)
+                    setNumSquaresOne(parseInt(e.target.value))
+                  } else {
+                    setStatusOne('error')
+                  }
+                }}
+                defaultValue={numSquaresOne} />) : (<Typography.Title level={3} style={{ color: "white" }} className="">{numSquaresOne}</Typography.Title>)}
             {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
           </div>
-          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!"><Button icon={icons['Play']} className="content-center pt-1" size="large" /></Tooltip>
+          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!">
+            <Button style={{ background: 'transparent' }}
+              icon={icons['Play']} className="content-center pt-1 text-white" size="large" />
+          </Tooltip>
 
-          <div className="flex gap-2">
-            <h4>Stack 2</h4>
-            {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
-            {interaction === 'addRemove' ? (<Input
+          {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
+          {interaction === 'addRemove' ?
+            (<Input
+              className="h-fit mb-3 bg-cyan-100"
               style={{ width: '45px' }}
               count={{
                 show: false,
@@ -176,22 +172,22 @@ export default function Index() {
                   setStatusTwo('error')
                 }
               }}
-              defaultValue={numSquaresTwo} />) : (<Typography.Text>{numSquaresTwo}</Typography.Text>)}
-            {/* <Button disabled={numSquaresTwo <= 1} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
-          </div>
+              defaultValue={numSquaresTwo} />) : (<Typography.Title level={3} style={{ color: "white" }} className="m-0">{numSquaresTwo}</Typography.Title>)}
+          {/* <Button disabled={numSquaresTwo <= 1} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
+
         </div>
-        <div>
-          <div className="flex justify-center gap-3">
-            <h4>Interaction Mode:</h4>
-            <Space>
-              <Radio.Group value={interaction} onChange={(e) => setInteraction(e.target.value)}>
-                <Radio.Button value="none" className="content-center"><Tooltip title='None'>{icons['Ban']}</Tooltip></Radio.Button>
-                <Radio.Button value="addRemove" className="content-center"><Tooltip title='Add / Remove'>{icons['Diff']}</Tooltip></Radio.Button>
-                <Radio.Button value="drawCompare" className="content-center"><Tooltip title='Draw / Compare'>{icons['PencilRuler']}</Tooltip></Radio.Button>
-              </Radio.Group>
-            </Space>
-          </div>
+        <div className="flex justify-center gap-3">
+          <Space>
+            <Radio.Group value={interaction} onChange={(e) => setInteraction(e.target.value)}>
+              <Radio.Button style={{ backgroundColor: 'transparent' }} value="none" className="content-center text-white"><Tooltip title='None'>{icons['Ban']}</Tooltip></Radio.Button>
+              <Radio.Button style={{ backgroundColor: 'transparent' }} value="addRemove" className="content-center text-white"><Tooltip title='Add / Remove'>{icons['Diff']}</Tooltip></Radio.Button>
+              <Radio.Button style={{ backgroundColor: 'transparent' }} value="drawCompare" className="content-center text-white"><Tooltip title='Draw / Compare'>{icons['PencilRuler']}</Tooltip></Radio.Button>
+            </Radio.Group>
+          </Space>
         </div>
+      </div>
+      <div>
+
       </div>
     </div>
   );
