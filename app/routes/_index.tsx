@@ -1,10 +1,12 @@
 import type { MetaFunction } from "@remix-run/node";
 import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react";
-import { Button, Divider, Input, Radio, Space, Tooltip, Typography } from "antd";
+import { Button, Divider, Drawer, Input, Radio, Space, Tooltip, Typography, ConfigProvider } from "antd";
 import icons from './icons'
 import Canvas from './Canvas/Canvas'
 import React from "react";
+import { useDrag } from '@use-gesture/react'
+import { use } from "framer-motion/client";
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,6 +33,7 @@ export default function Index() {
   const stackOneBottomSquare = useRef<HTMLDivElement | null>(null);
   const stackTwoTopSquare = useRef<HTMLDivElement | null>(null);
   const stackTwoBottomSquare = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState<boolean>(false)
 
   const getCoordinates = () => {
     const coordinates = {
@@ -63,8 +66,64 @@ export default function Index() {
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
+  const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo') => {
+    console.log('numSquaresOne:', numSquaresOne);
+    console.log('numSquaresTwo:', numSquaresTwo);
+    // Set the opacity based on the drag distance
+    const dragDistance = Math.abs(info.offset.x) + Math.abs(info.offset.y);  // Total drag distance
+
+    // If the drag distance exceeds a threshold, fade out and decrease numSquaresOne
+    if (numSquares === 'numSquaresOne') {
+      if (dragDistance > 200 && numSquaresOne > 1) { // 200 is the threshold, adjust it as needed
+        setNumSquaresOne((prev) => prev - 1);
+      }
+    } else {
+      if (dragDistance > 200 && numSquaresTwo > 1) { // 200 is the threshold, adjust it as needed
+        setNumSquaresTwo((prev) => prev - 1);
+      }
+    }
+
+    // Set the opacity of the dragged square
+    return {
+      opacity: dragDistance > 200 ? 0 : 1,  // Fade out if dragged far enough
+    };
+  };
+
+  const showDrawer = () => {
+    setOpen(true);
+  };
+
+  const onClose = () => {
+    setOpen(false);
+  };
+
   return (
     <div className="gradient-bg h-screen flex flex-col spotlight">
+      <Drawer
+        title="Basic Drawer"
+        placement='left'
+        closable={false}
+        onClose={onClose}
+        open={open}
+      >
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+      </Drawer>
+      <ConfigProvider
+        theme={{
+          token: {
+            defaultHoverColor: "#ffffff"
+          },
+        }}
+      >
+        <Button
+          type="text"
+          icon={icons['Help']}
+          onClick={() => setOpen(true)}
+          style={{ backgroundColor: 'transparent' }}
+          className="text-white m-3 absolute"
+        /></ConfigProvider>
       <Canvas
         interaction={interaction}
         availableHeight={canvasAvailableHight}
@@ -77,7 +136,7 @@ export default function Index() {
           position: "absolute",
           top: 0,
           left: 0,
-          zIndex: 9999,
+          zIndex: 900,
           pointerEvents: interaction !== 'drawCompare' ? 'none' : 'auto',
           touchAction: interaction !== 'drawCompare' ? 'none' : 'auto'
         }}
@@ -92,7 +151,8 @@ export default function Index() {
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
-                <div className={`container floating`} key={index}
+                <motion.div className={`container floating`} key={index} animate={{ scale: 1 }} drag={true}
+                  onDrag={(e, info) => handleDrag(e, info, 'numSquaresOne')}
                   ref={index === 0 ? stackOneTopSquare : index === numSquaresOne - 1 ? stackOneBottomSquare : null}
                   style={{
                     zIndex: numSquaresOne - index,
@@ -105,7 +165,7 @@ export default function Index() {
                     <div className="face front"></div>
                     <div className="face back"></div>
                   </div>
-                </div>))}
+                </motion.div>))}
 
             </div>
             <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn'
@@ -113,7 +173,8 @@ export default function Index() {
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
             >
               {Array(numSquaresTwo).fill('').map((_, index) => (
-                <div className="container floating" key={index}
+                <motion.div className="container floating" key={index} animate={{ scale: 1 }} drag={true}
+                  onDrag={(e, info) => handleDrag(e, info, 'numSquaresTwo')}
                   ref={index === 0 ? stackTwoTopSquare : index === numSquaresTwo - 1 ? stackTwoBottomSquare : null}
                   style={{
                     zIndex: numSquaresTwo - index,
@@ -126,17 +187,15 @@ export default function Index() {
                     <div className="face front"></div>
                     <div className="face back"></div>
                   </div>
-                </div>))}
+                </motion.div>))}
             </div>
           </div>
         </div>
       </div>
       <Divider style={{ borderColor: 'white' }} className="m-0" />
-      {/* <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title> */}
       <div className="flex flex-col mb-5">
         <div className="flex justify-between gap-5 items-center p-3 h-fit my-5 w-2/3 md:w-1/3 mx-auto">
           <div className="flex gap-2">
-            {/* <Button disabled={numSquaresOne >= 10} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
             {interaction === 'addRemove' ?
               (<Input
                 className="h-fit mb-3 bg-cyan-100"
@@ -159,7 +218,6 @@ export default function Index() {
                   }
                 }}
                 defaultValue={numSquaresOne} />) : (<Typography.Title level={3} style={{ color: "white" }} className="">{numSquaresOne}</Typography.Title>)}
-            {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
           </div>
           {readyForComparison ?
             (<Button
@@ -181,8 +239,6 @@ export default function Index() {
                 className="content-center pt-1 text-white"
                 size="large" />
             </Tooltip>)}
-
-          {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
           {interaction === 'addRemove' ?
             (<Input
               className="h-fit mb-3 bg-cyan-100"
@@ -206,8 +262,6 @@ export default function Index() {
                 }
               }}
               defaultValue={numSquaresTwo} />) : (<Typography.Title level={3} style={{ color: "white" }} className="m-0">{numSquaresTwo}</Typography.Title>)}
-          {/* <Button disabled={numSquaresTwo <= 1} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
-
         </div>
         <div className="flex justify-center gap-3">
           <Space>
@@ -220,7 +274,6 @@ export default function Index() {
         </div>
       </div>
       <div>
-
       </div>
     </div>
   );
