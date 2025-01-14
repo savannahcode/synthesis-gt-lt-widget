@@ -75,11 +75,11 @@ export default function Index() {
     // If the drag distance exceeds a threshold, fade out and decrease numSquaresOne
     if (numSquares === 'numSquaresOne') {
       if (dragDistance > 200 && numSquaresOne > 1) { // 200 is the threshold, adjust it as needed
-        setNumSquaresOne((prev) => prev - 1);
+        setNumSquaresOne((prev) => { return prev - 1 });
       }
     } else {
       if (dragDistance > 200 && numSquaresTwo > 1) { // 200 is the threshold, adjust it as needed
-        setNumSquaresTwo((prev) => prev - 1);
+        setNumSquaresTwo((prev) => { return prev - 1 });
       }
     }
 
@@ -141,26 +141,18 @@ export default function Index() {
               <li>You will not be able to play the comparison until you have drawn both lines required in the Draw / Compare Mode</li>
               <li>The animation will turn the lines you drew into the comparison operattor that would be used between the two numbers</li>
               <li>This will show you how the size of the "Square Stacks" relates to which stack is greater, and what comparison operator should be used here</li>
+              <li>After the Comparison Animation ends, the animated comparison operator will fade away, and you'll be free to go add and remove squares to try another comparison.</li>
             </ul>
           </div>
         </div>
       </Drawer>
-      <ConfigProvider
-        theme={{
-          components: {
-            Button: {
-              defaultHoverColor: "orange-8"
-            },
-          }
-        }}
-      >
-        <Button
-          type="text"
-          icon={icons['Help']}
-          onClick={() => setOpen(true)}
-          style={{ backgroundColor: 'transparent' }}
-          className="text-white m-3 absolute hover:drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)]"
-        /></ConfigProvider>
+      <Button
+        type="text"
+        icon={icons['Help']}
+        onClick={() => setOpen(true)}
+        style={{ backgroundColor: 'transparent' }}
+        className="text-white m-3 absolute hover:drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)]"
+      />
       <Canvas
         interaction={interaction}
         availableHeight={canvasAvailableHight}
@@ -188,8 +180,8 @@ export default function Index() {
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
-                <motion.div className={`container floating`} key={index} animate={{ scale: 1 }} drag={true}
-                  onDrag={(e, info) => handleDrag(e, info, 'numSquaresOne')}
+                <motion.div className={`container floating`} key={index} animate={{ scale: 1 }} drag
+                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresOne') }}
                   ref={index === 0 ? stackOneTopSquare : index === numSquaresOne - 1 ? stackOneBottomSquare : null}
                   style={{
                     zIndex: numSquaresOne - index,
@@ -210,8 +202,8 @@ export default function Index() {
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
             >
               {Array(numSquaresTwo).fill('').map((_, index) => (
-                <motion.div className="container floating" key={index} animate={{ scale: 1 }} drag={true}
-                  onDrag={(e, info) => handleDrag(e, info, 'numSquaresTwo')}
+                <motion.div className="container floating" key={index} animate={{ scale: 1 }} drag
+                  onDragEnd={(e, info) => { if (interaction === 'addRemove') handleDrag(e, info, 'numSquaresTwo') }}
                   ref={index === 0 ? stackTwoTopSquare : index === numSquaresTwo - 1 ? stackTwoBottomSquare : null}
                   style={{
                     zIndex: numSquaresTwo - index,
