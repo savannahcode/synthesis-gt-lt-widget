@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Divider, Input, Radio, Space, Tooltip, Typography } from "antd";
 import icons from './icons'
 import Canvas from './Canvas/Canvas'
+import React from "react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,9 +19,12 @@ export default function Index() {
   const [statusOne, setStatusOne] = useState<undefined | 'error'>(undefined);
   const [statusTwo, setStatusTwo] = useState<undefined | 'error'>(undefined);
   const [interaction, setInteraction] = useState<'none' | 'addRemove' | 'drawCompare'>('none')
+  const [boxesAvailableHeight, setBoxesAvailableHeight] = useState(300);
+  const [readyForComparison, setReadyForComparison] = useState(false)
+  const [startComparison, setStartComparison] = useState(false)
+
   const boxesContainerRef = useRef<HTMLDivElement | null>(null);
   const canvasHeightRef = useRef<HTMLDivElement | null>(null);
-  const [boxesAvailableHeight, setBoxesAvailableHeight] = useState(300);
   let canvasAvailableHight = canvasHeightRef.current?.clientHeight
 
   const stackOneTopSquare = useRef<HTMLDivElement | null>(null);
@@ -57,13 +61,8 @@ export default function Index() {
 
     if (totalHeight >= availableHeight) return 0;
 
-    // Otherwise, calculate the gap
     const gap = (availableHeight - totalHeight) / (numSquares - 1);
     return gap;
-  };
-
-  const getStackHeight = (numSquares: number, gap: number) => {
-    return numSquares === 1 ? 0 : gap * (numSquares - 1) + 2 * 16; // Add padding for top and bottom
   };
 
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
@@ -75,6 +74,10 @@ export default function Index() {
         interaction={interaction}
         availableHeight={canvasAvailableHight}
         coordinates={getCoordinates()}
+        changeReadyForComparison={(ready: boolean) => setReadyForComparison(ready)}
+        startComparison={startComparison}
+        numSquaresOne={numSquaresOne}
+        numSquaresTwo={numSquaresTwo}
         style={{
           position: "absolute",
           top: 0,
@@ -163,10 +166,26 @@ export default function Index() {
                 defaultValue={numSquaresOne} />) : (<Typography.Title level={3} style={{ color: "white" }} className="">{numSquaresOne}</Typography.Title>)}
             {/* <Button disabled={numSquaresOne <= 1} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne - 1 })}>-</Button> */}
           </div>
-          <Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2 before playing this comparison, unless you want the answer spoiled for you!">
-            <Button style={{ background: 'transparent' }}
-              icon={icons['Play']} className="content-center pt-1 text-white" size="large" />
-          </Tooltip>
+          {readyForComparison ?
+            (<Button
+              style={{ background: 'transparent' }}
+              icon={icons['Play']}
+              className="content-center pt-1 text-white"
+
+              onClick={() => {
+                setStartComparison(true);
+                setReadyForComparison(false)
+              }}
+              size="large" />)
+            :
+            (<Tooltip title="Draw lines from the top and bottom of Stack 1, to the top and bottom of Stack 2, before playing the comparison!">
+              <Button
+                style={{ background: 'transparent' }}
+                disabled={true}
+                icon={React.cloneElement(icons['Play'], { stroke: 'gray' })}
+                className="content-center pt-1 text-white"
+                size="large" />
+            </Tooltip>)}
 
           {/* <Button disabled={numSquaresTwo >= 10} onClick={() => setNumSquaresTwo((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
           {interaction === 'addRemove' ?
@@ -198,7 +217,7 @@ export default function Index() {
         <div className="flex justify-center gap-3">
           <Space>
             <Radio.Group value={interaction} onChange={(e) => setInteraction(e.target.value)}>
-              <Radio.Button style={{ backgroundColor: 'transparent' }} value="none" className="content-center text-white"><Tooltip title='None'>{icons['Ban']}</Tooltip></Radio.Button>
+              <Radio.Button style={{ backgroundColor: 'transparent' }} value="none" className="content-center text-white"><Tooltip title='No Interaction'>{icons['Ban']}</Tooltip></Radio.Button>
               <Radio.Button style={{ backgroundColor: 'transparent' }} value="addRemove" className="content-center text-white"><Tooltip title='Add / Remove'>{icons['Diff']}</Tooltip></Radio.Button>
               <Radio.Button style={{ backgroundColor: 'transparent' }} value="drawCompare" className="content-center text-white"><Tooltip title='Draw / Compare'>{icons['PencilRuler']}</Tooltip></Radio.Button>
             </Radio.Group>

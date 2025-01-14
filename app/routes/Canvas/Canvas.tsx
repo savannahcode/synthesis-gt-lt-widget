@@ -1,40 +1,146 @@
 import { MouseEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 
 const Canvas = (props: { [x: string]: any; }) => {
-    const { interaction, availableHeight, coordinates, ...rest } = props;
+    const { interaction, availableHeight, coordinates, changeReadyForComparison, startComparison, numSquaresOne, numSquaresTwo, ...rest } = props;
 
     const canvasReference = useRef<HTMLCanvasElement | null>(null);
     const contextReference = useRef<CanvasRenderingContext2D | null>(null);
 
     const [isPressed, setIsPressed] = useState(false);
     const [startPosition, setStartPosition] = useState<{ x: number, y: number } | null>(null);
-    const [lines, setLines] = useState<{ start: { x: number, y: number }, end: { x: number, y: number }, color: string, width: number }[]>([]);
+    const [lines, setLines] = useState<lineType[]>([]);
     const [opacity, setOpacity] = useState(1);
+    const [topLineFound, setTopLineFound] = useState(false)
+    const [bottomLineFound, setBottomLineFound] = useState(false)
 
+    useEffect(() => { if (topLineFound && bottomLineFound) changeReadyForComparison(true) }, [topLineFound, bottomLineFound])
+
+    useEffect(() => { if (startComparison) doComparison() }, [startComparison])
+
+    type lineType = { start: { x: number, y: number }, end: { x: number, y: number }, color: string, width: number };
+    type targetLineType = { start: { x: number, y: number }, end: { x: number, y: number } };
+
+
+    function animatePair(index: number, currentTop: lineType, currentBottom: lineType, targetTop: targetLineType, targetBottom: targetLineType) {
+        const duration = 500; // Animation duration in ms
+        const steps = 60; // Number of steps (frames) for the animation
+        let frame = 0;
+
+        const interval = setInterval(() => {
+            if (frame >= steps) {
+                clearInterval(interval);
+                return;
+            }
+
+            const t = frame / steps;
+
+            // Interpolate coordinates for both lines in the pair
+            const interpolatedTop = {
+                start: {
+                    x: currentTop.start.x + (targetTop.start.x - currentTop.start.x) * t,
+                    y: currentTop.start.y + (targetTop.start.y - currentTop.start.y) * t,
+                },
+                end: {
+                    x: currentTop.end.x + (targetTop.end.x - currentTop.end.x) * t,
+                    y: currentTop.end.y + (targetTop.end.y - currentTop.end.y) * t,
+                },
+                color: currentTop.color,
+                width: currentTop.width,
+            };
+
+            const interpolatedBottom = {
+                start: {
+                    x: currentBottom.start.x + (targetBottom.start.x - currentBottom.start.x) * t,
+                    y: currentBottom.start.y + (targetBottom.start.y - currentBottom.start.y) * t,
+                },
+                end: {
+                    x: currentBottom.end.x + (targetBottom.end.x - currentBottom.end.x) * t,
+                    y: currentBottom.end.y + (targetBottom.end.y - currentBottom.end.y) * t,
+                },
+                color: currentBottom.color,
+                width: currentBottom.width,
+            };
+
+            // Update both lines in the state
+            setLines((prevLines) =>
+                prevLines.map((line, i) => {
+                    if (i === index) return interpolatedTop;
+                    if (i === index + 1) return interpolatedBottom;
+                    return line;
+                })
+            );
+
+            frame++;
+        }, duration / steps);
+    }
+
+
+    function doComparison() {
+        // move lines to be in the shape of whatever comparison operator it is
+        console.log('lines', lines)
+        const targets = [];
+        if (numSquaresOne > numSquaresTwo) {
+            console.log('greater than')
+            // greater than sign '>'
+            targets.push(
+                {
+                    top: { start: { x: 70, y: 60 }, end: { x: 100, y: 100 } },
+                    bottom: { start: { x: 70, y: 60 }, end: { x: 100, y: 20 } }
+                }
+            );
+
+        } else if (numSquaresOne < numSquaresTwo) {
+            console.log('less than')
+            // less than sign '<'
+            targets.push(
+                {
+                    top: { start: { x: 100, y: 60 }, end: { x: 70, y: 100 } },
+                    bottom: { start: { x: 100, y: 60 }, end: { x: 70, y: 20 } }
+                }
+            );
+        } else if (numSquaresOne === numSquaresTwo) {
+            console.log('equal to')
+            // equal sign '='
+            targets.push(
+                {
+                    top: { start: { x: 50, y: 50 }, end: { x: 100, y: 50 } },
+                    bottom: { start: { x: 50, y: 70 }, end: { x: 100, y: 70 } }
+                }
+            );
+        }
+        console.log('targets', targets)
+        for (let i = 0; i < lines.length; i += 2) {
+            animatePair(i, lines[i], lines[i + 1], targets[0].top, targets[0].bottom);
+        }
+    }
 
     const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
         const offset = 60;
 
-        let stackOneTopX = coordinates.stackOneTop.x
-        let stackOneTopY = coordinates.stackOneTop.y
+        const stackOneTopX = coordinates.stackOneTop.x
+        const stackOneTopY = coordinates.stackOneTop.y
 
-        let stackOneBottomX = coordinates.stackOneBottom.x
-        let stackOneBottomY = coordinates.stackOneBottom.y
+        const stackOneBottomX = coordinates.stackOneBottom.x
+        const stackOneBottomY = coordinates.stackOneBottom.y
 
-        let stackTwoTopX = coordinates.stackTwoTop.x
-        let stackTwoTopY = coordinates.stackTwoTop.y
+        const stackTwoTopX = coordinates.stackTwoTop.x
+        const stackTwoTopY = coordinates.stackTwoTop.y
 
-        let stackTwoBottomX = coordinates.stackTwoBottom.x
-        let stackTwoBottomY = coordinates.stackTwoBottom.y
+        const stackTwoBottomX = coordinates.stackTwoBottom.x
+        const stackTwoBottomY = coordinates.stackTwoBottom.y
 
-        const stackOneTopToStackTwoTop = ((Math.abs(stackOneTopX - start.x) < offset) && (Math.abs(stackOneTopY - start.y) < offset) && (Math.abs(stackTwoTopX - end.x) < offset) && (Math.abs(stackTwoTopY - end.y) < offset))
-        const stackTwoTopToStackOneTop = ((Math.abs(stackOneTopX - end.x) < offset) && (Math.abs(stackOneTopY - end.y) < offset) && (Math.abs(stackTwoTopX - start.x) < offset) && (Math.abs(stackTwoTopY - start.y) < offset))
+        const stackOneTopToStackTwoTop = ((Math.abs(stackOneTopX - start.x) < offset) && (Math.abs(stackOneTopY - start.y) < offset) && (Math.abs(stackTwoTopX - end.x) < offset) && (Math.abs(stackTwoTopY - end.y) < offset) && !topLineFound)
+        const stackTwoTopToStackOneTop = ((Math.abs(stackOneTopX - end.x) < offset) && (Math.abs(stackOneTopY - end.y) < offset) && (Math.abs(stackTwoTopX - start.x) < offset) && (Math.abs(stackTwoTopY - start.y) < offset) && !topLineFound)
 
-        const stackOneBottomToStackTwoBottom = ((Math.abs(stackOneBottomX - start.x) < offset) && (Math.abs(stackOneBottomY - start.y) < offset) && (Math.abs(stackTwoBottomX - end.x) < offset) && (Math.abs(stackTwoBottomY - end.y) < offset))
-        const stackTwoBottomToStackOneBottom = ((Math.abs(stackOneBottomX - end.x) < offset) && (Math.abs(stackOneBottomY - end.y) < offset) && (Math.abs(stackTwoBottomX - start.x) < offset) && (Math.abs(stackTwoBottomY - start.y) < offset))
+        const stackOneBottomToStackTwoBottom = ((Math.abs(stackOneBottomX - start.x) < offset) && (Math.abs(stackOneBottomY - start.y) < offset) && (Math.abs(stackTwoBottomX - end.x) < offset) && (Math.abs(stackTwoBottomY - end.y) < offset) && !bottomLineFound)
+        const stackTwoBottomToStackOneBottom = ((Math.abs(stackOneBottomX - end.x) < offset) && (Math.abs(stackOneBottomY - end.y) < offset) && (Math.abs(stackTwoBottomX - start.x) < offset) && (Math.abs(stackTwoBottomY - start.y) < offset) && !bottomLineFound)
 
 
-        if (stackOneTopToStackTwoTop || stackTwoTopToStackOneTop || stackOneBottomToStackTwoBottom || stackTwoBottomToStackOneBottom) {
+        if (stackOneTopToStackTwoTop || stackTwoTopToStackOneTop) {
+            setTopLineFound(true)
+            return false
+        } else if (stackOneBottomToStackTwoBottom || stackTwoBottomToStackOneBottom) {
+            setBottomLineFound(true)
             return false
         } return true;
     };
