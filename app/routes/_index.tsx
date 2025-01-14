@@ -100,21 +100,58 @@ export default function Index() {
   return (
     <div className="gradient-bg h-screen flex flex-col spotlight">
       <Drawer
-        title="Basic Drawer"
+        title={undefined}
         placement='left'
         closable={false}
         onClose={onClose}
         open={open}
+        style={{ backgroundColor: '#00162a', color: "white" }}
       >
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
+        <Typography.Title level={3} style={{ color: 'white' }}>Interaction Modes</Typography.Title>
+        <div className="flex flex-col gap-8">
+          <div>
+            <span className="flex gap-2">{icons["Ban"]}<Typography.Title level={5} style={{ color: 'white' }}>No Interaction Mode</Typography.Title></span>
+            <ul className="list-disc pl-5">
+              <li>For viewing only</li>
+            </ul>
+          </div>
+          <div>
+            <span className="flex gap-2">{icons["Diff"]}<Typography.Title level={5} style={{ color: 'white' }}>Add / Remove Squares Mode</Typography.Title></span>
+            <ul className="list-disc pl-5">
+              <li>When you click on one of the "Square Stacks" it will add a square from the stack</li>
+              <li>When you drag on of the squares away from  the stack, it will remove a square from the stack</li>
+              <li>You can also change the input fields below their respective "Square Stacks" to quickly update the number of squares there</li>
+              <li>No more than 10 squares can be in a stack</li>
+              <li>No less than 1 square can be in a stack</li>
+            </ul>
+          </div>
+          <div>
+            <span className="flex gap-2">{icons["PencilRuler"]}<Typography.Title level={5} style={{ color: 'white' }}>Draw / Compare Square Stacks Mode</Typography.Title></span>
+            <ul className="list-disc pl-5">
+              <li>You can draw lines to compare the size of the stacks</li>
+              <li>Draw a line from the top of one stack, to the top of the other stack</li>
+              <li>Draw another line from the bottom of one stack, to the bottom of the other stack</li>
+              <li>If you draw a line that isn't useful for your comparison, it will fade away</li>
+              <li>Once you've drawn both comparison lines, you'll be able to play the comparison, by hitting the Play Button in the Control Panel</li>
+            </ul>
+          </div>
+          <div>
+            <span className="flex gap-2">{icons["Play"]}<Typography.Title level={5} style={{ color: 'white' }}>Play Comparison Animation</Typography.Title></span>
+            <ul className="list-disc pl-5">
+              <li>You will not be able to play the comparison until you have drawn both lines required in the Draw / Compare Mode</li>
+              <li>The animation will turn the lines you drew into the comparison operattor that would be used between the two numbers</li>
+              <li>This will show you how the size of the "Square Stacks" relates to which stack is greater, and what comparison operator should be used here</li>
+            </ul>
+          </div>
+        </div>
       </Drawer>
       <ConfigProvider
         theme={{
-          token: {
-            defaultHoverColor: "#ffffff"
-          },
+          components: {
+            Button: {
+              defaultHoverColor: "orange-8"
+            },
+          }
         }}
       >
         <Button
@@ -122,7 +159,7 @@ export default function Index() {
           icon={icons['Help']}
           onClick={() => setOpen(true)}
           style={{ backgroundColor: 'transparent' }}
-          className="text-white m-3 absolute"
+          className="text-white m-3 absolute hover:drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)]"
         /></ConfigProvider>
       <Canvas
         interaction={interaction}
