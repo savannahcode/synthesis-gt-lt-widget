@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { MouseEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 
 const Canvas = (props: { [x: string]: any; }) => {
     const { interaction, availableHeight, ...rest } = props;
@@ -26,9 +26,10 @@ const Canvas = (props: { [x: string]: any; }) => {
         }
     }, [availableHeight]);
 
-    const beginDraw = (e: { nativeEvent: { offsetX: number; offsetY: number; }; }) => {
+    const beginDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
         if (contextReference.current) {
-            const { offsetX, offsetY } = e.nativeEvent;
+            const { offsetX, offsetY } = getPosition(e)
             setStartPosition({ x: offsetX, y: offsetY }); // Set start position
             contextReference.current.beginPath();
             contextReference.current.moveTo(offsetX, offsetY);
@@ -36,10 +37,11 @@ const Canvas = (props: { [x: string]: any; }) => {
         }
     };
 
-    const updateDraw = (e: { nativeEvent: { offsetX: number; offsetY: number; }; }) => {
+    const updateDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
         if (!isPressed || !startPosition) return;
 
-        const { offsetX, offsetY } = e.nativeEvent;
+        const { offsetX, offsetY } = getPosition(e);
         const context = contextReference.current;
 
         if (context && canvasReference.current) {
@@ -74,12 +76,13 @@ const Canvas = (props: { [x: string]: any; }) => {
         }
     };
 
-    const endDraw = (e: { nativeEvent: { offsetX: number, offsetY: number } }) => {
+    const endDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
         if (contextReference.current) {
             contextReference.current.closePath();
         }
         if (startPosition) {
-            const { offsetX, offsetY } = e.nativeEvent;
+            const { offsetX, offsetY } = getPosition(e);
 
             // Store the final line's start and end points
             setLines(prevLines => [
@@ -92,6 +95,23 @@ const Canvas = (props: { [x: string]: any; }) => {
         setStartPosition(null);
     };
 
+    const getPosition = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
+        if ('touches' in e) {
+            // For touch events, get the first touch point
+            const touch = e.touches[0];
+            const rect = canvasReference.current?.getBoundingClientRect();
+            const offsetX = touch.clientX - (rect?.left || 0);
+            const offsetY = touch.clientY - (rect?.top || 0);
+            return { offsetX, offsetY }; // Return offsetX and offsetY
+        }
+
+        // For mouse events, get the offsetX and offsetY from the native event
+        return {
+            offsetX: e.nativeEvent.offsetX,
+            offsetY: e.nativeEvent.offsetY,
+        };
+    };
+
     return (
         <canvas
             ref={canvasReference}
@@ -100,6 +120,9 @@ const Canvas = (props: { [x: string]: any; }) => {
             onMouseMove={interaction === 'drawCompare' ? updateDraw : () => { }}
             onMouseUp={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
             onMouseOut={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }} // Ensures the drawing stops if the mouse leaves the canvas
+            onTouchStart={interaction === 'drawCompare' ? beginDraw : () => { }}
+            onTouchMove={interaction === 'drawCompare' ? updateDraw : () => { }}
+            onTouchEnd={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
         />
     );
 };
