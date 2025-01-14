@@ -16,7 +16,7 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const linesRef = useRef<lineType[]>(lines);
     useEffect(() => {
-        linesRef.current = lines; // Sync lines state with the ref
+        linesRef.current = lines;
     }, [lines]);
 
     useEffect(() => {
@@ -34,12 +34,11 @@ const Canvas = (props: { [x: string]: any; }) => {
 
 
     function animateLines(targetTop: targetLineType, targetBottom: targetLineType) {
-        const duration = 500; // Animation duration in ms
         const steps = 60; // Number of steps (frames) for the animation
         let frame = 0;
 
-        let topLines = []
-        let bottomLines = []
+        let topLines: lineType[] = []
+        let bottomLines: lineType[] = []
         let topTwoLines: 'bottom' | 'top' = 'top'
         if (lines[0].start.y < lines[2].start.y) {
             topLines = lines.slice(0, 2)
@@ -50,10 +49,10 @@ const Canvas = (props: { [x: string]: any; }) => {
             topTwoLines = 'bottom'
         }
 
-        const interval = setInterval(() => {
-            // Clear the canvas and redraw all lines
+        function draw() {
             const context = contextReference.current;
             if (!context) return
+
             context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
             linesRef.current.forEach(line => {
                 context.globalAlpha = 1;
@@ -66,24 +65,20 @@ const Canvas = (props: { [x: string]: any; }) => {
             });
 
             if (frame >= steps) {
-                // give a moment, then fade out the lines
-                //setLines([])
-                setTopLineFound(false)
-                setTopLineFound(false)
-                clearInterval(interval);
+                // Finished animation, stop and fade out lines
+                setTopLineFound(false);
+                setBottomLineFound(false);
                 return;
             }
 
             const t = frame / steps;
-
-            let currentTop = topLines[0]
-            let currentBottom = bottomLines[0]
+            let currentTop = topLines[0];
+            let currentBottom = bottomLines[0];
 
             // Update both lines in the state
             setLines((prevLines) => {
                 return prevLines.map((line, i) => {
                     if (i === 0 || i === 1) {
-                        // Interpolate the top line and add color and width from prevLines
                         return {
                             start: {
                                 x: currentTop.start.x + (targetTop.start.x - currentTop.start.x) * t,
@@ -93,12 +88,11 @@ const Canvas = (props: { [x: string]: any; }) => {
                                 x: currentTop.end.x + (targetTop.end.x - currentTop.end.x) * t,
                                 y: currentTop.end.y + (targetTop.end.y - currentTop.end.y) * t,
                             },
-                            color: prevLines[i].color,  // Get color from prevLines
-                            width: prevLines[i].width,  // Get width from prevLines
+                            color: prevLines[i].color,
+                            width: prevLines[i].width,
                         };
                     }
                     if (i === 2 || i === 3) {
-                        // Interpolate the bottom line and add color and width from prevLines
                         return {
                             start: {
                                 x: currentBottom.start.x + (targetBottom.start.x - currentBottom.start.x) * t,
@@ -108,17 +102,19 @@ const Canvas = (props: { [x: string]: any; }) => {
                                 x: currentBottom.end.x + (targetBottom.end.x - currentBottom.end.x) * t,
                                 y: currentBottom.end.y + (targetBottom.end.y - currentBottom.end.y) * t,
                             },
-                            color: prevLines[i].color,  // Get color from prevLines
-                            width: prevLines[i].width,  // Get width from prevLines
+                            color: prevLines[i].color,
+                            width: prevLines[i].width,
                         };
                     }
-                    return line; // Keep the other lines unchanged
+                    return line;
                 });
             });
 
-
             frame++;
-        }, duration / steps);
+            requestAnimationFrame(draw); // Recursively call draw to update the next frame
+        }
+
+        draw(); // Start the animation loop
     }
 
 
@@ -129,16 +125,16 @@ const Canvas = (props: { [x: string]: any; }) => {
             // greater than sign '>'
             targets.push(
                 {
-                    bottom: { start: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 }, end: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 100 } },
-                    top: { start: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 }, end: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 20 } }
+                    top: { start: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 }, end: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 20 } },
+                    bottom: { start: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 100 }, end: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 } },
                 }
             );
         } else if (numSquaresOne < numSquaresTwo) {
             // less than sign '<'
             targets.push(
                 {
-                    top: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 100 } },
-                    bottom: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 20 } }
+                    top: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 20 } },
+                    bottom: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 100 } },
                 }
             );
         } else if (numSquaresOne === numSquaresTwo) {
@@ -194,8 +190,8 @@ const Canvas = (props: { [x: string]: any; }) => {
             canvas.height = availableHeight;
             if (context) {
                 context.lineCap = "round";
-                context.lineWidth = 8; // Outer white stroke width
-                context.strokeStyle = 'white'; // White color for outer stroke
+                context.lineWidth = 8;
+                context.strokeStyle = 'white';
                 contextReference.current = context;
             }
         }
@@ -206,7 +202,7 @@ const Canvas = (props: { [x: string]: any; }) => {
         setOpacity(1)
         if (contextReference.current) {
             const { offsetX, offsetY } = getPosition(e)
-            setStartPosition({ x: offsetX, y: offsetY }); // Set start position
+            setStartPosition({ x: offsetX, y: offsetY });
             contextReference.current.beginPath();
             contextReference.current.moveTo(offsetX, offsetY);
             setIsPressed(true);
@@ -221,7 +217,7 @@ const Canvas = (props: { [x: string]: any; }) => {
         const context = contextReference.current;
 
         if (context && canvasReference.current) {
-            context.clearRect(0, 0, canvasReference.current.width, canvasReference.current.height); // Clear the canvas before redrawing all lines
+            context.clearRect(0, 0, canvasReference.current.width, canvasReference.current.height);
 
             // Redraw previously stored lines
             lines.forEach(line => {
@@ -263,7 +259,7 @@ const Canvas = (props: { [x: string]: any; }) => {
 
             // Check if the line should fade out
             if (shouldFadeOutLine(startPosition, { x: offsetX, y: offsetY })) {
-                let localOpacity = 1; // Local opacity variable for fading
+                let localOpacity = 1;
                 const context = contextReference.current;
                 if (!context) return
                 const fadeOutInterval = setInterval(() => {
@@ -318,15 +314,12 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const getPosition = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
         if ('touches' in e) {
-            // For touch events, get the first touch point
             const touch = e.touches[0];
             const rect = canvasReference.current?.getBoundingClientRect();
             const offsetX = touch.clientX - (rect?.left || 0);
             const offsetY = touch.clientY - (rect?.top || 0);
-            return { offsetX, offsetY }; // Return offsetX and offsetY
+            return { offsetX, offsetY };
         }
-
-        // For mouse events, get the offsetX and offsetY from the native event
         return {
             offsetX: e.nativeEvent.offsetX,
             offsetY: e.nativeEvent.offsetY,
@@ -340,7 +333,7 @@ const Canvas = (props: { [x: string]: any; }) => {
             onMouseDown={interaction === 'drawCompare' ? beginDraw : () => { }}
             onMouseMove={interaction === 'drawCompare' ? updateDraw : () => { }}
             onMouseUp={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
-            onMouseOut={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }} // Ensures the drawing stops if the mouse leaves the canvas
+            onMouseOut={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
             onTouchStart={interaction === 'drawCompare' ? beginDraw : () => { }}
             onTouchMove={interaction === 'drawCompare' ? updateDraw : () => { }}
             onTouchEnd={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
