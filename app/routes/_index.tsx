@@ -67,7 +67,8 @@ export default function Index() {
           top: 0,
           left: 0,
           zIndex: 9999, // Ensures it is above everything else
-          pointerEvents: interaction !== 'drawCompare' ? 'none' : 'auto'
+          pointerEvents: interaction !== 'drawCompare' ? 'none' : 'auto',
+          touchAction: interaction !== 'drawCompare' ? 'none' : 'auto'
         }}
       />
 

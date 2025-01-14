@@ -9,7 +9,14 @@ const Canvas = (props: { [x: string]: any; }) => {
     const [isPressed, setIsPressed] = useState(false);
     const [startPosition, setStartPosition] = useState<{ x: number, y: number } | null>(null);
     const [lines, setLines] = useState<{ start: { x: number, y: number }, end: { x: number, y: number }, color: string, width: number }[]>([]);
+    const [opacity, setOpacity] = useState(1);
 
+
+    const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
+        return true
+        // const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+        // return distance > 100;  // Example condition: If the line is longer than 100px, fade out
+    };
 
     useEffect(() => {
         const canvas = canvasReference.current;
@@ -28,6 +35,7 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const beginDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
         e.preventDefault();
+        setOpacity(1)
         if (contextReference.current) {
             const { offsetX, offsetY } = getPosition(e)
             setStartPosition({ x: offsetX, y: offsetY }); // Set start position
@@ -45,7 +53,6 @@ const Canvas = (props: { [x: string]: any; }) => {
         const context = contextReference.current;
 
         if (context && canvasReference.current) {
-            // Draw the white stroke first (outer) for the entire line
             context.clearRect(0, 0, canvasReference.current.width, canvasReference.current.height); // Clear the canvas before redrawing all lines
 
             // Redraw previously stored lines
@@ -58,6 +65,7 @@ const Canvas = (props: { [x: string]: any; }) => {
                 context.stroke();
             });
 
+            context.globalAlpha = opacity;
             // Draw the current white stroke (outer) for the line
             context.lineWidth = 8;
             context.strokeStyle = 'white';
@@ -81,16 +89,64 @@ const Canvas = (props: { [x: string]: any; }) => {
         if (contextReference.current) {
             contextReference.current.closePath();
         }
+
         if (startPosition) {
             const { offsetX, offsetY } = getPosition(e);
 
-            // Store the final line's start and end points
-            setLines(prevLines => [
-                ...prevLines,
-                { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'white', width: 8 }, // Store outer white line
-                { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'lightblue', width: 4 } // Store inner blue line
-            ]);
+            // Check if the line should fade out
+            if (shouldFadeOutLine(startPosition, { x: offsetX, y: offsetY })) {
+                let localOpacity = 1; // Local opacity variable for fading
+                const context = contextReference.current;
+                if (!context) return
+                const fadeOutInterval = setInterval(() => {
+                    // Clear the canvas and redraw all lines except the fading one
+                    context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
+                    lines.forEach(line => {
+                        context.globalAlpha = 1;
+                        context.lineWidth = line.width;
+                        context.strokeStyle = line.color;
+                        context.beginPath();
+                        context.moveTo(line.start.x, line.start.y);
+                        context.lineTo(line.end.x, line.end.y);
+                        context.stroke();
+                    });
+
+                    if (localOpacity <= 0) {
+                        clearInterval(fadeOutInterval);
+                        console.log('RETURN', localOpacity)
+                        return;
+                    }
+
+                    // Draw the fading line
+                    context.globalAlpha = localOpacity;
+                    context.lineWidth = 8;
+                    context.strokeStyle = 'white';
+                    context.beginPath();
+                    context.moveTo(startPosition.x, startPosition.y);
+                    context.lineTo(offsetX, offsetY);
+                    context.stroke();
+
+                    context.lineWidth = 4;
+                    context.strokeStyle = 'lightblue';
+                    context.beginPath();
+                    context.moveTo(startPosition.x, startPosition.y);
+                    context.lineTo(offsetX, offsetY);
+                    context.stroke();
+
+                    localOpacity -= 0.05; // Decrease opacity for next frame
+
+                    console.log('localOpacity', localOpacity)
+                }, 30); // Adjust interval duration for smoother fading
+            } else {
+                // Store the line with full opacity if it doesn't fade out
+                setLines(prevLines => [
+                    ...prevLines,
+                    { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'white', width: 8 },
+                    { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'lightblue', width: 4 },
+                ]);
+            }
         }
+
         setIsPressed(false);
         setStartPosition(null);
     };
