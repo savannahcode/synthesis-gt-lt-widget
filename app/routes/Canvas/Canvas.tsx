@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { MouseEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 
 const Canvas = (props: { [x: string]: any; }) => {
@@ -13,7 +14,18 @@ const Canvas = (props: { [x: string]: any; }) => {
     const [topLineFound, setTopLineFound] = useState(false)
     const [bottomLineFound, setBottomLineFound] = useState(false)
 
-    useEffect(() => { if (topLineFound && bottomLineFound) changeReadyForComparison(true) }, [topLineFound, bottomLineFound])
+    const linesRef = useRef<lineType[]>(lines);
+    useEffect(() => {
+        linesRef.current = lines; // Sync lines state with the ref
+    }, [lines]);
+
+    useEffect(() => {
+        if (topLineFound && bottomLineFound) {
+            changeReadyForComparison(true);
+            message.success('You can now play the comparison')
+
+        }
+    }, [topLineFound, bottomLineFound])
 
     useEffect(() => { if (startComparison) doComparison() }, [startComparison])
 
@@ -21,18 +33,51 @@ const Canvas = (props: { [x: string]: any; }) => {
     type targetLineType = { start: { x: number, y: number }, end: { x: number, y: number } };
 
 
-    function animatePair(index: number, currentTop: lineType, currentBottom: lineType, targetTop: targetLineType, targetBottom: targetLineType) {
+    function animateLines(targetTop: targetLineType, targetBottom: targetLineType) {
         const duration = 500; // Animation duration in ms
         const steps = 60; // Number of steps (frames) for the animation
         let frame = 0;
 
+        let topLines = []
+        let bottomLines = []
+        let topTwoLines: 'bottom' | 'top' = 'top'
+        if (lines[0].start.y < lines[2].start.y) {
+            topLines = lines.slice(0, 2)
+            bottomLines = lines.slice(2, 4)
+        } else {
+            topLines = lines.slice(2, 4)
+            bottomLines = lines.slice(0, 2)
+            topTwoLines = 'bottom'
+        }
+
         const interval = setInterval(() => {
+            // Clear the canvas and redraw all lines
+            const context = contextReference.current;
+            if (!context) return
+            context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
+            linesRef.current.forEach(line => {
+                context.globalAlpha = 1;
+                context.lineWidth = line.width;
+                context.strokeStyle = line.color;
+                context.beginPath();
+                context.moveTo(line.start.x, line.start.y);
+                context.lineTo(line.end.x, line.end.y);
+                context.stroke();
+            });
+
             if (frame >= steps) {
+                // give a moment, then fade out the lines
+                //setLines([])
+                setTopLineFound(false)
+                setTopLineFound(false)
                 clearInterval(interval);
                 return;
             }
 
             const t = frame / steps;
+
+            let currentTop = topLines[0]
+            let currentBottom = bottomLines[0]
 
             // Interpolate coordinates for both lines in the pair
             const interpolatedTop = {
@@ -60,15 +105,16 @@ const Canvas = (props: { [x: string]: any; }) => {
                 color: currentBottom.color,
                 width: currentBottom.width,
             };
-
+            console.log('lines', lines)
             // Update both lines in the state
-            setLines((prevLines) =>
-                prevLines.map((line, i) => {
-                    if (i === index) return interpolatedTop;
-                    if (i === index + 1) return interpolatedBottom;
+            setLines((prevLines) => {
+                return prevLines.map((line, i) => {
+                    if (i === 0 || i === 1) return interpolatedTop; // Adjust indices for the top lines
+                    if (i === 2 || i === 3) return interpolatedBottom; // Adjust indices for the bottom lines
                     return line;
-                })
-            );
+                });
+            });
+
 
             frame++;
         }, duration / steps);
@@ -84,8 +130,8 @@ const Canvas = (props: { [x: string]: any; }) => {
             // greater than sign '>'
             targets.push(
                 {
-                    top: { start: { x: 70, y: 60 }, end: { x: 100, y: 100 } },
-                    bottom: { start: { x: 70, y: 60 }, end: { x: 100, y: 20 } }
+                    top: { start: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 100 } },
+                    bottom: { start: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 20 } }
                 }
             );
 
@@ -94,8 +140,8 @@ const Canvas = (props: { [x: string]: any; }) => {
             // less than sign '<'
             targets.push(
                 {
-                    top: { start: { x: 100, y: 60 }, end: { x: 70, y: 100 } },
-                    bottom: { start: { x: 100, y: 60 }, end: { x: 70, y: 20 } }
+                    top: { start: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 100 } },
+                    bottom: { start: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 20 } }
                 }
             );
         } else if (numSquaresOne === numSquaresTwo) {
@@ -103,14 +149,14 @@ const Canvas = (props: { [x: string]: any; }) => {
             // equal sign '='
             targets.push(
                 {
-                    top: { start: { x: 50, y: 50 }, end: { x: 100, y: 50 } },
-                    bottom: { start: { x: 50, y: 70 }, end: { x: 100, y: 70 } }
+                    top: { start: { x: window.innerWidth / 2 + 50, y: 50 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 50 } },
+                    bottom: { start: { x: window.innerWidth / 2 + 50, y: 70 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 70 } }
                 }
             );
         }
         console.log('targets', targets)
         for (let i = 0; i < lines.length; i += 2) {
-            animatePair(i, lines[i], lines[i + 1], targets[0].top, targets[0].bottom);
+            animateLines(targets[0].top, targets[0].bottom);
         }
     }
 
