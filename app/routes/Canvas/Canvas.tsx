@@ -32,6 +32,9 @@ const Canvas = (props: { [x: string]: any; }) => {
     type lineType = { start: { x: number, y: number }, end: { x: number, y: number }, color: string, width: number };
     type targetLineType = { start: { x: number, y: number }, end: { x: number, y: number } };
 
+    function delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     function animateLines(targetTop: targetLineType, targetBottom: targetLineType) {
         const steps = 60; // Number of steps (frames) for the animation
@@ -49,7 +52,7 @@ const Canvas = (props: { [x: string]: any; }) => {
             topTwoLines = 'bottom'
         }
 
-        function draw() {
+        async function draw() {
             const context = contextReference.current;
             if (!context) return
 
@@ -65,17 +68,41 @@ const Canvas = (props: { [x: string]: any; }) => {
             });
 
             if (frame >= steps) {
+                await delay(4000);
                 // Finished animation, stop and fade out lines
-                setTopLineFound(false);
-                setBottomLineFound(false);
-                return;
+                const context = contextReference.current;
+                if (!context) return
+                let localOpacity = 1;
+                const fadeOutInterval = setInterval(() => {
+                    context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
+
+                    if (localOpacity <= 0) {
+                        setLines([])
+                        setTopLineFound(false);
+                        setBottomLineFound(false);
+                        changeReadyForComparison(false)
+                        clearInterval(fadeOutInterval);
+                        return;
+                    }
+
+                    linesRef.current.forEach(line => {
+                        context.globalAlpha = localOpacity;
+                        context.lineWidth = line.width;
+                        context.strokeStyle = line.color;
+                        context.beginPath();
+                        context.moveTo(line.start.x, line.start.y);
+                        context.lineTo(line.end.x, line.end.y);
+                        context.stroke();
+                    });
+
+                    localOpacity -= 0.05;
+                }, 50);
             }
 
             const t = frame / steps;
             let currentTop = topLines[0];
             let currentBottom = bottomLines[0];
 
-            // Update both lines in the state
             setLines((prevLines) => {
                 return prevLines.map((line, i) => {
                     if (i === 0 || i === 1) {

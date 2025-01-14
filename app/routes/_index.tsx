@@ -77,8 +77,6 @@ export default function Index() {
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
-  useEffect(() => { console.log(numSquaresOne) }, [numSquaresOne])
-
   const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo', index: number) => {
     const threshold = 100; // Define a threshold for drag distance
 
