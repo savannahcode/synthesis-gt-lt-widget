@@ -43,11 +43,6 @@ export default function Index() {
   }
 
   useEffect(() => {
-    console.log('getCoordinates', getCoordinates())
-  }, [stackOneTopSquare, stackOneBottomSquare, stackTwoTopSquare, stackTwoBottomSquare])
-
-
-  useEffect(() => {
     if (boxesContainerRef.current) {
       const containerHeight = boxesContainerRef.current.clientHeight;
       setBoxesAvailableHeight(containerHeight);

@@ -79,39 +79,40 @@ const Canvas = (props: { [x: string]: any; }) => {
             let currentTop = topLines[0]
             let currentBottom = bottomLines[0]
 
-            // Interpolate coordinates for both lines in the pair
-            const interpolatedTop = {
-                start: {
-                    x: currentTop.start.x + (targetTop.start.x - currentTop.start.x) * t,
-                    y: currentTop.start.y + (targetTop.start.y - currentTop.start.y) * t,
-                },
-                end: {
-                    x: currentTop.end.x + (targetTop.end.x - currentTop.end.x) * t,
-                    y: currentTop.end.y + (targetTop.end.y - currentTop.end.y) * t,
-                },
-                color: currentTop.color,
-                width: currentTop.width,
-            };
-
-            const interpolatedBottom = {
-                start: {
-                    x: currentBottom.start.x + (targetBottom.start.x - currentBottom.start.x) * t,
-                    y: currentBottom.start.y + (targetBottom.start.y - currentBottom.start.y) * t,
-                },
-                end: {
-                    x: currentBottom.end.x + (targetBottom.end.x - currentBottom.end.x) * t,
-                    y: currentBottom.end.y + (targetBottom.end.y - currentBottom.end.y) * t,
-                },
-                color: currentBottom.color,
-                width: currentBottom.width,
-            };
-            console.log('lines', lines)
             // Update both lines in the state
             setLines((prevLines) => {
                 return prevLines.map((line, i) => {
-                    if (i === 0 || i === 1) return interpolatedTop; // Adjust indices for the top lines
-                    if (i === 2 || i === 3) return interpolatedBottom; // Adjust indices for the bottom lines
-                    return line;
+                    if (i === 0 || i === 1) {
+                        // Interpolate the top line and add color and width from prevLines
+                        return {
+                            start: {
+                                x: currentTop.start.x + (targetTop.start.x - currentTop.start.x) * t,
+                                y: currentTop.start.y + (targetTop.start.y - currentTop.start.y) * t,
+                            },
+                            end: {
+                                x: currentTop.end.x + (targetTop.end.x - currentTop.end.x) * t,
+                                y: currentTop.end.y + (targetTop.end.y - currentTop.end.y) * t,
+                            },
+                            color: prevLines[i].color,  // Get color from prevLines
+                            width: prevLines[i].width,  // Get width from prevLines
+                        };
+                    }
+                    if (i === 2 || i === 3) {
+                        // Interpolate the bottom line and add color and width from prevLines
+                        return {
+                            start: {
+                                x: currentBottom.start.x + (targetBottom.start.x - currentBottom.start.x) * t,
+                                y: currentBottom.start.y + (targetBottom.start.y - currentBottom.start.y) * t,
+                            },
+                            end: {
+                                x: currentBottom.end.x + (targetBottom.end.x - currentBottom.end.x) * t,
+                                y: currentBottom.end.y + (targetBottom.end.y - currentBottom.end.y) * t,
+                            },
+                            color: prevLines[i].color,  // Get color from prevLines
+                            width: prevLines[i].width,  // Get width from prevLines
+                        };
+                    }
+                    return line; // Keep the other lines unchanged
                 });
             });
 
@@ -123,38 +124,32 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     function doComparison() {
         // move lines to be in the shape of whatever comparison operator it is
-        console.log('lines', lines)
         const targets = [];
         if (numSquaresOne > numSquaresTwo) {
-            console.log('greater than')
             // greater than sign '>'
             targets.push(
                 {
-                    top: { start: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 100 } },
-                    bottom: { start: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 20 } }
+                    bottom: { start: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 }, end: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 100 } },
+                    top: { start: { x: window.innerWidth / 2 + 80, y: availableHeight / 2 + 55 }, end: { x: window.innerWidth / 2 - 40, y: availableHeight / 2 + 20 } }
                 }
             );
-
         } else if (numSquaresOne < numSquaresTwo) {
-            console.log('less than')
             // less than sign '<'
             targets.push(
                 {
-                    top: { start: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 100 } },
-                    bottom: { start: { x: window.innerWidth / 2 + 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 20 } }
+                    top: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 100 } },
+                    bottom: { start: { x: window.innerWidth / 2 - 70, y: availableHeight / 2 + 60 }, end: { x: window.innerWidth / 2 + 50, y: availableHeight / 2 + 20 } }
                 }
             );
         } else if (numSquaresOne === numSquaresTwo) {
-            console.log('equal to')
             // equal sign '='
             targets.push(
                 {
-                    top: { start: { x: window.innerWidth / 2 + 50, y: 50 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 50 } },
-                    bottom: { start: { x: window.innerWidth / 2 + 50, y: 70 }, end: { x: window.innerWidth / 2 + 100, y: availableHeight / 2 + 70 } }
+                    top: { start: { x: window.innerWidth / 2 + -30, y: availableHeight / 2 + 50 }, end: { x: window.innerWidth / 2 + 30, y: availableHeight / 2 + 50 } },
+                    bottom: { start: { x: window.innerWidth / 2 - 30, y: availableHeight / 2 + 70 }, end: { x: window.innerWidth / 2 + 30, y: availableHeight / 2 + 70 } }
                 }
             );
         }
-        console.log('targets', targets)
         for (let i = 0; i < lines.length; i += 2) {
             animateLines(targets[0].top, targets[0].bottom);
         }
