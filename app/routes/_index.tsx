@@ -33,7 +33,10 @@ export default function Index() {
   const stackOneBottomSquare = useRef<HTMLDivElement | null>(null);
   const stackTwoTopSquare = useRef<HTMLDivElement | null>(null);
   const stackTwoBottomSquare = useRef<HTMLDivElement | null>(null);
+
   const [open, setOpen] = useState<boolean>(false)
+  const [tempNumSquaresOneValue, setTempNumSquaresOneValue] = useState(String(numSquaresOne));
+  const [tempNumSquaresTwoValue, setTempNumSquaresTwoValue] = useState(String(numSquaresTwo));
 
   const getCoordinates = () => {
     const coordinates = {
@@ -52,6 +55,14 @@ export default function Index() {
     }
   }, []);
 
+  useEffect(() => {
+    setTempNumSquaresOneValue(String(numSquaresOne));
+  }, [numSquaresOne]);
+
+  useEffect(() => {
+    setTempNumSquaresTwoValue(String(numSquaresTwo));
+  }, [numSquaresTwo]);
+
   const calculateGap = (numSquares: number, availableHeight: number) => {
     const squareHeight = 40;
     const padding = 16;
@@ -67,25 +78,22 @@ export default function Index() {
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
   const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo') => {
-    console.log('numSquaresOne:', numSquaresOne);
-    console.log('numSquaresTwo:', numSquaresTwo);
+
     // Set the opacity based on the drag distance
-    const dragDistance = Math.abs(info.offset.x) + Math.abs(info.offset.y);  // Total drag distance
+    const dragDistance = Math.abs(info.offset.x) + Math.abs(info.offset.y);
 
     // If the drag distance exceeds a threshold, fade out and decrease numSquaresOne
     if (numSquares === 'numSquaresOne') {
-      if (dragDistance > 200 && numSquaresOne > 1) { // 200 is the threshold, adjust it as needed
+      if (dragDistance > 200 && numSquaresOne > 1) {
         setNumSquaresOne((prev) => { return prev - 1 });
       }
     } else {
-      if (dragDistance > 200 && numSquaresTwo > 1) { // 200 is the threshold, adjust it as needed
+      if (dragDistance > 200 && numSquaresTwo > 1) {
         setNumSquaresTwo((prev) => { return prev - 1 });
       }
     }
-
-    // Set the opacity of the dragged square
     return {
-      opacity: dragDistance > 200 ? 0 : 1,  // Fade out if dragged far enough
+      opacity: dragDistance > 200 ? 0 : 1,  // Fade out isn't working yet
     };
   };
 
@@ -177,7 +185,7 @@ export default function Index() {
             <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn transform-gpu'
               ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
-              onClick={() => { if (interaction === 'addRemove') { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
+              onClick={() => { if (interaction === 'addRemove' && numSquaresTwo < 10) { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
                 <motion.div className={`container floating`} key={index} animate={{ scale: 1 }} drag
@@ -199,7 +207,7 @@ export default function Index() {
             </div>
             <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn'
               style={{ gap: `${gapForLargerStack}px` }}
-              onClick={() => { if (interaction === 'addRemove') { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
+              onClick={() => { if (interaction === 'addRemove' && numSquaresTwo < 10) { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
             >
               {Array(numSquaresTwo).fill('').map((_, index) => (
                 <motion.div className="container floating" key={index} animate={{ scale: 1 }} drag
@@ -229,6 +237,7 @@ export default function Index() {
               (<Input
                 className="h-fit mb-3 bg-cyan-100"
                 style={{ width: '45px' }}
+                value={tempNumSquaresOneValue}
                 count={{
                   show: false,
                   max: 2,
@@ -238,22 +247,29 @@ export default function Index() {
                 status={statusOne}
                 onChange={(e) => {
                   const value = e.target.value.trim();
+                  setTempNumSquaresOneValue(value);
+                }}
+                onBlur={() => {
                   const isValidNumber = /^[1-9]\d*$/;
-                  if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
-                    setStatusOne(undefined)
-                    setNumSquaresOne(parseInt(e.target.value))
+                  const parsedValue = parseInt(tempNumSquaresOneValue, 10);
+
+                  if (isValidNumber.test(tempNumSquaresOneValue) && parsedValue > 0 && parsedValue <= 10) {
+                    setStatusTwo(undefined);
+                    setNumSquaresTwo(parsedValue);
                   } else {
-                    setStatusOne('error')
+                    setStatusTwo('error');
+                    setTempNumSquaresOneValue(String(numSquaresTwo));
                   }
                 }}
-                defaultValue={numSquaresOne} />) : (<Typography.Title level={3} style={{ color: "white" }} className="">{numSquaresOne}</Typography.Title>)}
+              //defaultValue={numSquaresOne} 
+              />) :
+              (<Typography.Title level={3} style={{ color: "white" }}>{numSquaresOne}</Typography.Title>)}
           </div>
           {readyForComparison ?
             (<Button
               style={{ background: 'transparent' }}
               icon={icons['Play']}
               className="content-center pt-1 text-white"
-
               onClick={() => {
                 setStartComparison(true);
                 setReadyForComparison(false)
@@ -271,6 +287,7 @@ export default function Index() {
           {interaction === 'addRemove' ?
             (<Input
               className="h-fit mb-3 bg-cyan-100"
+              value={tempNumSquaresTwoValue}
               style={{ width: '45px' }}
               count={{
                 show: false,
@@ -281,16 +298,23 @@ export default function Index() {
               status={statusTwo}
               onChange={(e) => {
                 const value = e.target.value.trim();
+                setTempNumSquaresTwoValue(value);
+              }}
+              onBlur={() => {
                 const isValidNumber = /^[1-9]\d*$/;
-                if (parseInt(value) <= 10 && parseInt(value) > 0 && isValidNumber.test(value)) {
+                const parsedValue = parseInt(tempNumSquaresTwoValue, 10);
 
-                  setStatusTwo(undefined)
-                  setNumSquaresTwo(parseInt(value))
+                if (isValidNumber.test(tempNumSquaresTwoValue) && parsedValue > 0 && parsedValue <= 10) {
+                  setStatusTwo(undefined);
+                  setNumSquaresTwo(parsedValue);
                 } else {
-                  setStatusTwo('error')
+                  setStatusTwo('error');
+                  setTempNumSquaresTwoValue(String(numSquaresTwo));
                 }
               }}
-              defaultValue={numSquaresTwo} />) : (<Typography.Title level={3} style={{ color: "white" }} className="m-0">{numSquaresTwo}</Typography.Title>)}
+            //defaultValue={numSquaresTwo} 
+            />) :
+            (<Typography.Title level={3} style={{ color: "white" }} className="m-0">{numSquaresTwo}</Typography.Title>)}
         </div>
         <div className="flex justify-center gap-3">
           <Space>
