@@ -11,16 +11,32 @@ body {
   }
 }
 
-.boxColumn {
-  filter:
-    drop-shadow(0 0px 70px #dceeff) drop-shadow(0 -150px 70px #dceeff) drop-shadow(0 150px 70px #dceeff);
+.gradient-bg {
+  background-color: #00162a;
+  background: -webkit-linear-gradient(90deg, #00162a, #212a3d);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(90deg, #00162a, #212a3d);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
+.boxColumn {
+  filter:
+    drop-shadow(0 0px 50px #dceeff) drop-shadow(0 -150px 50px #dceeff) drop-shadow(0 150px 50px #dceeff);
+}
 
-.gradient-bg {
-  top: calc(50% - 100px);
-  left: calc(50% - 200px);
-  background-color: #18354f;
+/* Safari-specific styling */
+@supports (-webkit-appearance: none) {
+  .boxColumn {
+    box-shadow:
+      0 0px 50px #dceeff35,
+      /* Main shadow */
+      0 -150px 50px #dceeff35,
+      /* Shadow above */
+      0 150px 50px #dceeff35;
+    /* Shadow below */
+    border-radius: 20px;
+    /* Add border-radius for Safari */
+  }
 }
 
 .floating {

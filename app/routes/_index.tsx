@@ -69,7 +69,7 @@ export default function Index() {
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
   return (
-    <div className="gradient-bg h-screen flex flex-col content">
+    <div className="gradient-bg h-screen flex flex-col spotlight">
       <Canvas
         interaction={interaction}
         availableHeight={canvasAvailableHight}
@@ -88,10 +88,10 @@ export default function Index() {
         }}
       />
 
-      <div className="flex items-center justify-center w-1/3 m-auto flex-1" ref={canvasHeightRef}>
+      <div className="flex items-center justify-center w-2/3 md:w-1/3 m-auto flex-1" ref={canvasHeightRef}>
         <div className="flex flex-col items-center gap-16 w-full h-full">
           <div className="flex items-center justify-between w-full h-full">
-            <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
+            <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn transform-gpu'
               ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
@@ -113,7 +113,7 @@ export default function Index() {
                 </div>))}
 
             </div>
-            <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
+            <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn'
               style={{ gap: `${gapForLargerStack}px` }}
               onClick={() => { if (interaction === 'addRemove') { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
             >
@@ -139,7 +139,7 @@ export default function Index() {
       <Divider style={{ borderColor: 'white' }} className="m-0" />
       {/* <Typography.Title level={3} style={{ color: "white" }} className="text-center">Control Panel</Typography.Title> */}
       <div className="flex flex-col mb-5">
-        <div className="flex justify-between gap-5 items-center p-3 h-fit my-5 w-1/3 mx-auto">
+        <div className="flex justify-between gap-5 items-center p-3 h-fit my-5 w-2/3 md:w-1/3 mx-auto">
           <div className="flex gap-2">
             {/* <Button disabled={numSquaresOne >= 10} onClick={() => setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 })}>+</Button> */}
             {interaction === 'addRemove' ?
