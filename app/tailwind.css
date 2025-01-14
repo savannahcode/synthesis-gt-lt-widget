@@ -13,7 +13,7 @@ body {
 
 .boxColumn {
   filter:
-    drop-shadow(0 10px 70px #aad6ff) drop-shadow(0 20px 70px #aad6ff) drop-shadow(0 150px 70px #aad6ff);
+    drop-shadow(0 0px 70px #dceeff) drop-shadow(0 -150px 70px #dceeff) drop-shadow(0 150px 70px #dceeff);
 }
 
 

@@ -23,6 +23,25 @@ export default function Index() {
   const [boxesAvailableHeight, setBoxesAvailableHeight] = useState(300);
   let canvasAvailableHight = canvasHeightRef.current?.clientHeight
 
+  const stackOneTopSquare = useRef<HTMLDivElement | null>(null);
+  const stackOneBottomSquare = useRef<HTMLDivElement | null>(null);
+  const stackTwoTopSquare = useRef<HTMLDivElement | null>(null);
+  const stackTwoBottomSquare = useRef<HTMLDivElement | null>(null);
+
+  const getCoordinates = () => {
+    const coordinates = {
+      stackOneTop: stackOneTopSquare.current?.getBoundingClientRect(),
+      stackOneBottom: stackOneBottomSquare.current?.getBoundingClientRect(),
+      stackTwoTop: stackTwoTopSquare.current?.getBoundingClientRect(),
+      stackTwoBottom: stackTwoBottomSquare.current?.getBoundingClientRect(),
+    };
+    return coordinates;
+  }
+
+  useEffect(() => {
+    console.log('getCoordinates', getCoordinates())
+  }, [stackOneTopSquare, stackOneBottomSquare, stackTwoTopSquare, stackTwoBottomSquare])
+
 
   useEffect(() => {
     if (boxesContainerRef.current) {
@@ -50,23 +69,17 @@ export default function Index() {
   const largerStackSquares = Math.max(numSquaresOne, numSquaresTwo);
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
-  // Calculate the height for both stacks based on the gap
-  const heightForLargerStack = getStackHeight(largerStackSquares, gapForLargerStack);
-  const heightForSmallerStack = getStackHeight(
-    Math.min(numSquaresOne, numSquaresTwo),
-    gapForLargerStack
-  );
-
   return (
     <div className="gradient-bg h-screen flex flex-col content">
       <Canvas
         interaction={interaction}
         availableHeight={canvasAvailableHight}
+        coordinates={getCoordinates()}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
-          zIndex: 9999, // Ensures it is above everything else
+          zIndex: 9999,
           pointerEvents: interaction !== 'drawCompare' ? 'none' : 'auto',
           touchAction: interaction !== 'drawCompare' ? 'none' : 'auto'
         }}
@@ -78,9 +91,11 @@ export default function Index() {
             <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
               ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
+              onClick={() => { if (interaction === 'addRemove') { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
                 <div className={`container floating`} key={index}
+                  ref={index === 0 ? stackOneTopSquare : index === numSquaresOne - 1 ? stackOneBottomSquare : null}
                   style={{
                     zIndex: numSquaresOne - index,
                   }}>
@@ -96,9 +111,12 @@ export default function Index() {
 
             </div>
             <div className='flex flex-col items-center justify-center h-5/6 boxColumn'
-              style={{ gap: `${gapForLargerStack}px` }}>
+              style={{ gap: `${gapForLargerStack}px` }}
+              onClick={() => { if (interaction === 'addRemove') { setNumSquaresTwo((prevNumSquaresTwo) => { return prevNumSquaresTwo + 1 }) } }}
+            >
               {Array(numSquaresTwo).fill('').map((_, index) => (
                 <div className="container floating" key={index}
+                  ref={index === 0 ? stackTwoTopSquare : index === numSquaresTwo - 1 ? stackTwoBottomSquare : null}
                   style={{
                     zIndex: numSquaresTwo - index,
                   }}>

@@ -1,7 +1,7 @@
 import { MouseEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 
 const Canvas = (props: { [x: string]: any; }) => {
-    const { interaction, availableHeight, ...rest } = props;
+    const { interaction, availableHeight, coordinates, ...rest } = props;
 
     const canvasReference = useRef<HTMLCanvasElement | null>(null);
     const contextReference = useRef<CanvasRenderingContext2D | null>(null);
@@ -13,9 +13,30 @@ const Canvas = (props: { [x: string]: any; }) => {
 
 
     const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
-        return true
-        // const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
-        // return distance > 100;  // Example condition: If the line is longer than 100px, fade out
+        const offset = 60;
+
+        let stackOneTopX = coordinates.stackOneTop.x
+        let stackOneTopY = coordinates.stackOneTop.y
+
+        let stackOneBottomX = coordinates.stackOneBottom.x
+        let stackOneBottomY = coordinates.stackOneBottom.y
+
+        let stackTwoTopX = coordinates.stackTwoTop.x
+        let stackTwoTopY = coordinates.stackTwoTop.y
+
+        let stackTwoBottomX = coordinates.stackTwoBottom.x
+        let stackTwoBottomY = coordinates.stackTwoBottom.y
+
+        const stackOneTopToStackTwoTop = ((Math.abs(stackOneTopX - start.x) < offset) && (Math.abs(stackOneTopY - start.y) < offset) && (Math.abs(stackTwoTopX - end.x) < offset) && (Math.abs(stackTwoTopY - end.y) < offset))
+        const stackTwoTopToStackOneTop = ((Math.abs(stackOneTopX - end.x) < offset) && (Math.abs(stackOneTopY - end.y) < offset) && (Math.abs(stackTwoTopX - start.x) < offset) && (Math.abs(stackTwoTopY - start.y) < offset))
+
+        const stackOneBottomToStackTwoBottom = ((Math.abs(stackOneBottomX - start.x) < offset) && (Math.abs(stackOneBottomY - start.y) < offset) && (Math.abs(stackTwoBottomX - end.x) < offset) && (Math.abs(stackTwoBottomY - end.y) < offset))
+        const stackTwoBottomToStackOneBottom = ((Math.abs(stackOneBottomX - end.x) < offset) && (Math.abs(stackOneBottomY - end.y) < offset) && (Math.abs(stackTwoBottomX - start.x) < offset) && (Math.abs(stackTwoBottomY - start.y) < offset))
+
+
+        if (stackOneTopToStackTwoTop || stackTwoTopToStackOneTop || stackOneBottomToStackTwoBottom || stackTwoBottomToStackOneBottom) {
+            return false
+        } return true;
     };
 
     useEffect(() => {
@@ -113,7 +134,6 @@ const Canvas = (props: { [x: string]: any; }) => {
 
                     if (localOpacity <= 0) {
                         clearInterval(fadeOutInterval);
-                        console.log('RETURN', localOpacity)
                         return;
                     }
 
@@ -133,10 +153,8 @@ const Canvas = (props: { [x: string]: any; }) => {
                     context.lineTo(offsetX, offsetY);
                     context.stroke();
 
-                    localOpacity -= 0.05; // Decrease opacity for next frame
-
-                    console.log('localOpacity', localOpacity)
-                }, 30); // Adjust interval duration for smoother fading
+                    localOpacity -= 0.05;
+                }, 30);
             } else {
                 // Store the line with full opacity if it doesn't fade out
                 setLines(prevLines => [
