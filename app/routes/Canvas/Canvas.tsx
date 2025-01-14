@@ -8,6 +8,8 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const [isPressed, setIsPressed] = useState(false);
     const [startPosition, setStartPosition] = useState<{ x: number, y: number } | null>(null);
+    const [lines, setLines] = useState<{ start: { x: number, y: number }, end: { x: number, y: number }, color: string, width: number }[]>([]);
+
 
     useEffect(() => {
         const canvas = canvasReference.current;
@@ -40,31 +42,51 @@ const Canvas = (props: { [x: string]: any; }) => {
         const { offsetX, offsetY } = e.nativeEvent;
         const context = contextReference.current;
 
-        if (context) {
+        if (context && canvasReference.current) {
             // Draw the white stroke first (outer) for the entire line
             context.clearRect(0, 0, canvasReference.current.width, canvasReference.current.height); // Clear the canvas before redrawing all lines
-            context.beginPath();
-            context.moveTo(startPosition.x, startPosition.y);
-            context.lineTo(offsetX, offsetY);
-            context.stroke();
 
-            // Draw the blue stroke on top (inner) for the entire line
-            context.lineWidth = 4; // Smaller width for the blue line
-            context.strokeStyle = 'lightblue'; // Light blue color for inner stroke
-            context.beginPath();
-            context.moveTo(startPosition.x, startPosition.y);
-            context.lineTo(offsetX, offsetY);
-            context.stroke();
+            // Redraw previously stored lines
+            lines.forEach(line => {
+                context.lineWidth = line.width;
+                context.strokeStyle = line.color;
+                context.beginPath();
+                context.moveTo(line.start.x, line.start.y);
+                context.lineTo(line.end.x, line.end.y);
+                context.stroke();
+            });
 
-            // Reset to original white stroke width and color
+            // Draw the current white stroke (outer) for the line
             context.lineWidth = 8;
             context.strokeStyle = 'white';
+            context.beginPath();
+            context.moveTo(startPosition.x, startPosition.y);
+            context.lineTo(offsetX, offsetY);
+            context.stroke();
+
+            // Draw the current blue stroke (inner) for the line
+            context.lineWidth = 4; // Smaller width for the blue line
+            context.strokeStyle = 'lightblue';
+            context.beginPath();
+            context.moveTo(startPosition.x, startPosition.y);
+            context.lineTo(offsetX, offsetY);
+            context.stroke();
         }
     };
 
-    const endDraw = () => {
+    const endDraw = (e: { nativeEvent: { offsetX: number, offsetY: number } }) => {
         if (contextReference.current) {
             contextReference.current.closePath();
+        }
+        if (startPosition) {
+            const { offsetX, offsetY } = e.nativeEvent;
+
+            // Store the final line's start and end points
+            setLines(prevLines => [
+                ...prevLines,
+                { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'white', width: 8 }, // Store outer white line
+                { start: startPosition, end: { x: offsetX, y: offsetY }, color: 'lightblue', width: 4 } // Store inner blue line
+            ]);
         }
         setIsPressed(false);
         setStartPosition(null);
@@ -76,8 +98,8 @@ const Canvas = (props: { [x: string]: any; }) => {
             {...rest}
             onMouseDown={interaction === 'drawCompare' ? beginDraw : () => { }}
             onMouseMove={interaction === 'drawCompare' ? updateDraw : () => { }}
-            onMouseUp={interaction === 'drawCompare' ? endDraw : () => { }}
-            onMouseOut={interaction === 'drawCompare' ? endDraw : () => { }} // Ensures the drawing stops if the mouse leaves the canvas
+            onMouseUp={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }}
+            onMouseOut={interaction === 'drawCompare' ? (e) => endDraw(e) : () => { }} // Ensures the drawing stops if the mouse leaves the canvas
         />
     );
 };
