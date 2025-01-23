@@ -18,6 +18,22 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     useEffect(() => {
         const canvas = canvasReference.current;
+        if (canvas) {
+            const context = canvas.getContext("2d");
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * devicePixelRatio;
+            canvas.height = availableHeight * devicePixelRatio;
+            if (context) {
+                context.scale(devicePixelRatio, devicePixelRatio);
+                contextReference.current = context;
+            }
+        }
+    }, [])
+
+
+    // this useEffect ensures no scroll while drawing
+    useEffect(() => {
+        const canvas = canvasReference.current;
         if (!canvas) return;
         const handleTouchStart = (e: Event) => {
             const rect = canvas.getBoundingClientRect();
@@ -208,7 +224,7 @@ const Canvas = (props: { [x: string]: any; }) => {
     }
 
     const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
-        const offset = 80;
+        const offset = 60;
 
         const stackOneTopX = coordinates.stackOneTop.x
         const stackOneTopY = coordinates.stackOneTop.y

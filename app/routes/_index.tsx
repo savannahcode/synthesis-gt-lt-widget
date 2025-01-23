@@ -181,7 +181,7 @@ export default function Index() {
             <div className='flex flex-col items-center justify-center h-5/6 boxColumnSmall boxColumn transform-gpu'
               ref={boxesContainerRef}
               style={{ gap: `${gapForLargerStack}px` }}
-              onClick={() => { if (interaction === 'addRemove' && numSquaresTwo < 10) { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
+              onClick={() => { if (interaction === 'addRemove' && numSquaresOne < 10) { setNumSquaresOne((prevNumSquaresOne) => { return prevNumSquaresOne + 1 }) } }}
             >
               {Array(numSquaresOne).fill('').map((_, index) => (
                 <motion.div className={`container ${interaction !== 'addRemove' && 'floating'}`} key={index} animate={{ scale: 1 }} drag={interaction === 'addRemove'}
