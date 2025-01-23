@@ -1,5 +1,7 @@
 import { message } from 'antd';
-import { MouseEvent, TouchEvent, useEffect, useRef, useState } from 'react';
+import { MouseEvent, useEffect, useRef, useState } from 'react';
+import type { TouchEvent } from 'react';
+
 
 const Canvas = (props: { [x: string]: any; }) => {
     const { interaction, availableHeight, coordinates, changeReadyForComparison, startComparison, numSquaresOne, numSquaresTwo, ...rest } = props;
@@ -17,37 +19,27 @@ const Canvas = (props: { [x: string]: any; }) => {
     useEffect(() => {
         const canvas = canvasReference.current;
         if (!canvas) return;
-
-        const handleTouchStart = (e: TouchEvent) => {
+        const handleTouchStart = (e: Event) => {
             const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const isInsideCanvas =
-                touch.clientX >= rect.left &&
-                touch.clientX <= rect.right &&
-                touch.clientY >= rect.top &&
-                touch.clientY <= rect.bottom;
+            if (e instanceof TouchEvent) {
+                const touch = e.touches[0];
+                const isInsideCanvas =
+                    touch.clientX >= rect.left &&
+                    touch.clientX <= rect.right &&
+                    touch.clientY >= rect.top &&
+                    touch.clientY <= rect.bottom;
 
-            if (isInsideCanvas) {
-                e.preventDefault(); // Prevent scrolling only inside the canvas
-                console.log("Start drawing...");
-                // Begin drawing logic
+                if (isInsideCanvas) {
+                    e.preventDefault();
+                }
             }
         };
-
-        const handleTouchMove = (e: TouchEvent) => {
-            e.preventDefault(); // Prevent scrolling while drawing
-            console.log("Drawing...");
-            // Drawing logic here
-
+        const handleTouchMove = (e: Event) => {
+            e.preventDefault();
         };
-
-
-        // Attach event listeners
         canvas.addEventListener("touchstart", handleTouchStart);
         canvas.addEventListener("touchmove", handleTouchMove);
-
         return () => {
-            // Clean up event listeners
             canvas.removeEventListener("touchstart", handleTouchStart);
             canvas.removeEventListener("touchmove", handleTouchMove);
         };
@@ -62,7 +54,6 @@ const Canvas = (props: { [x: string]: any; }) => {
         if (topLineFound && bottomLineFound) {
             changeReadyForComparison(true);
             message.success('You can now play the comparison')
-
         }
     }, [topLineFound, bottomLineFound])
 
@@ -79,7 +70,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     function animateLines(targetTop: targetLineType, targetBottom: targetLineType) {
         const steps = 60; // Number of steps (frames) for the animation
         let frame = 0;
-
         let topLines: lineType[] = []
         let bottomLines: lineType[] = []
         let topTwoLines: 'bottom' | 'top' = 'top'
@@ -180,7 +170,6 @@ const Canvas = (props: { [x: string]: any; }) => {
             frame++;
             requestAnimationFrame(draw); // Recursively call draw to update the next frame
         }
-
         draw(); // Start the animation loop
     }
 
@@ -219,7 +208,7 @@ const Canvas = (props: { [x: string]: any; }) => {
     }
 
     const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
-        const offset = 60;
+        const offset = 80;
 
         const stackOneTopX = coordinates.stackOneTop.x
         const stackOneTopY = coordinates.stackOneTop.y
