@@ -87,8 +87,6 @@ export default function Index() {
     }
   };
 
-
-
   const onClose = () => {
     setOpen(false);
   };

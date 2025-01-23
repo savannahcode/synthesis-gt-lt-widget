@@ -14,6 +14,45 @@ const Canvas = (props: { [x: string]: any; }) => {
     const [topLineFound, setTopLineFound] = useState(false)
     const [bottomLineFound, setBottomLineFound] = useState(false)
 
+    useEffect(() => {
+        const canvas = canvasReference.current;
+        if (!canvas) return;
+
+        const handleTouchStart = (e: TouchEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const isInsideCanvas =
+                touch.clientX >= rect.left &&
+                touch.clientX <= rect.right &&
+                touch.clientY >= rect.top &&
+                touch.clientY <= rect.bottom;
+
+            if (isInsideCanvas) {
+                e.preventDefault(); // Prevent scrolling only inside the canvas
+                console.log("Start drawing...");
+                // Begin drawing logic
+            }
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            e.preventDefault(); // Prevent scrolling while drawing
+            console.log("Drawing...");
+            // Drawing logic here
+
+        };
+
+
+        // Attach event listeners
+        canvas.addEventListener("touchstart", handleTouchStart);
+        canvas.addEventListener("touchmove", handleTouchMove);
+
+        return () => {
+            // Clean up event listeners
+            canvas.removeEventListener("touchstart", handleTouchStart);
+            canvas.removeEventListener("touchmove", handleTouchMove);
+        };
+    }, [isPressed]);
+
     const linesRef = useRef<lineType[]>(lines);
     useEffect(() => {
         linesRef.current = lines;
@@ -26,6 +65,7 @@ const Canvas = (props: { [x: string]: any; }) => {
 
         }
     }, [topLineFound, bottomLineFound])
+
 
     useEffect(() => { if (startComparison) doComparison() }, [startComparison])
 
@@ -225,7 +265,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     }, [availableHeight]);
 
     const beginDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
         const context = contextReference.current;
         if (context) {
             context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
@@ -241,7 +280,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     };
 
     const updateDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
         if (!isPressed || !startPosition) return;
 
         const { offsetX, offsetY } = getPosition(e);
@@ -280,7 +318,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     };
 
     const endDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
         if (contextReference.current) {
             contextReference.current.closePath();
         }
@@ -346,7 +383,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     const getPosition = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
         if ('touches' in e) {
             const touch = e.touches[0] ? e.touches[0] : e.changedTouches[0];
-            console.log(touch)
             const rect = canvasReference.current?.getBoundingClientRect();
             const offsetX = touch.clientX - (rect?.left || 0);
             const offsetY = touch.clientY - (rect?.top || 0);
