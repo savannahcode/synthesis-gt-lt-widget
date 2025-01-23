@@ -15,22 +15,7 @@ const Canvas = (props: { [x: string]: any; }) => {
     const [opacity, setOpacity] = useState(1);
     const [topLineFound, setTopLineFound] = useState(false)
     const [bottomLineFound, setBottomLineFound] = useState(false)
-
-    // attempt to fix issues on ipad and iphone with lines's offset being more finicky due to pixel density
-    useEffect(() => {
-        const canvas = canvasReference.current;
-        if (canvas) {
-            const context = canvas.getContext("2d");
-            const devicePixelRatio = window.devicePixelRatio || 1;
-            canvas.width = window.innerWidth * devicePixelRatio;
-            canvas.height = availableHeight * devicePixelRatio;
-            if (context) {
-                context.scale(devicePixelRatio, devicePixelRatio);
-                contextReference.current = context;
-            }
-        }
-    }, [])
-
+    const [offset, setOffset] = useState<number>(60)
 
     // this useEffect ensures no scroll while drawing
     useEffect(() => {
@@ -39,6 +24,8 @@ const Canvas = (props: { [x: string]: any; }) => {
         const handleTouchStart = (e: Event) => {
             const rect = canvas.getBoundingClientRect();
             if (e instanceof TouchEvent) {
+                // attempt to fix issues on ipad and iphone with lines's offset being more finicky due to pixel density
+                setOffset(120)
                 const touch = e.touches[0];
                 const isInsideCanvas =
                     touch.clientX >= rect.left &&
@@ -230,8 +217,6 @@ const Canvas = (props: { [x: string]: any; }) => {
     }
 
     const shouldFadeOutLine = (start: { x: number, y: number }, end: { x: number, y: number }) => {
-        const offset = 60;
-
         const stackOneTopX = coordinates.stackOneTop.x
         const stackOneTopY = coordinates.stackOneTop.y
 
