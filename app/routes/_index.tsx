@@ -162,6 +162,7 @@ export default function Index() {
         availableHeight={canvasAvailableHeight}
         coordinates={getCoordinates()}
         changeReadyForComparison={(ready: boolean) => setReadyForComparison(ready)}
+        changeStartComparison={(start: boolean) => setStartComparison(start)}
         startComparison={startComparison}
         numSquaresOne={numSquaresOne}
         numSquaresTwo={numSquaresTwo}

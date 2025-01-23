@@ -4,7 +4,7 @@ import type { TouchEvent } from 'react';
 
 
 const Canvas = (props: { [x: string]: any; }) => {
-    const { interaction, availableHeight, coordinates, changeReadyForComparison, startComparison, numSquaresOne, numSquaresTwo, ...rest } = props;
+    const { interaction, availableHeight, coordinates, changeReadyForComparison, changeStartComparison, startComparison, numSquaresOne, numSquaresTwo, ...rest } = props;
 
     const canvasReference = useRef<HTMLCanvasElement | null>(null);
     const contextReference = useRef<CanvasRenderingContext2D | null>(null);
@@ -16,6 +16,7 @@ const Canvas = (props: { [x: string]: any; }) => {
     const [topLineFound, setTopLineFound] = useState(false)
     const [bottomLineFound, setBottomLineFound] = useState(false)
 
+    // attempt to fix issues on ipad and iphone with lines's offset being more finicky due to pixel density
     useEffect(() => {
         const canvas = canvasReference.current;
         if (canvas) {
@@ -84,7 +85,8 @@ const Canvas = (props: { [x: string]: any; }) => {
     }
 
     function animateLines(targetTop: targetLineType, targetBottom: targetLineType) {
-        const steps = 60; // Number of steps (frames) for the animation
+        const steps = 70; // Number of steps (frames) for the animation
+        let animationFinished = false;
         let frame = 0;
         let topLines: lineType[] = []
         let bottomLines: lineType[] = []
@@ -99,6 +101,7 @@ const Canvas = (props: { [x: string]: any; }) => {
         }
 
         async function draw() {
+            if (animationFinished) return;
             const context = contextReference.current;
             if (!context) return
 
@@ -114,7 +117,7 @@ const Canvas = (props: { [x: string]: any; }) => {
             });
 
             if (frame >= steps) {
-                await delay(4000);
+                await delay(3000);
                 // Finished animation, stop and fade out lines
                 const context = contextReference.current;
                 if (!context) return
@@ -124,10 +127,13 @@ const Canvas = (props: { [x: string]: any; }) => {
 
                     if (localOpacity <= 0) {
                         setLines([])
+                        linesRef.current = []
                         setTopLineFound(false);
                         setBottomLineFound(false);
                         changeReadyForComparison(false)
+                        changeStartComparison(false)
                         clearInterval(fadeOutInterval);
+                        animationFinished = true;
                         return;
                     }
 
