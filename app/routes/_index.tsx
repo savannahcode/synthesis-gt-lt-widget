@@ -5,8 +5,6 @@ import { Button, Divider, Drawer, Input, Radio, Space, Tooltip, Typography, Conf
 import icons from './icons'
 import Canvas from './Canvas/Canvas'
 import React from "react";
-import { useDrag } from '@use-gesture/react'
-import { use } from "framer-motion/client";
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,7 +25,7 @@ export default function Index() {
 
   const boxesContainerRef = useRef<HTMLDivElement | null>(null);
   const canvasHeightRef = useRef<HTMLDivElement | null>(null);
-  let canvasAvailableHight = canvasHeightRef.current?.clientHeight
+  let canvasAvailableHeight = canvasHeightRef.current?.clientHeight
 
   const stackOneTopSquare = useRef<HTMLDivElement | null>(null);
   const stackOneBottomSquare = useRef<HTMLDivElement | null>(null);
@@ -78,8 +76,7 @@ export default function Index() {
   const gapForLargerStack = calculateGap(largerStackSquares, boxesAvailableHeight);
 
   const handleDrag = (_e: any, info: { offset: { x: number; y: number; }; }, numSquares: 'numSquaresOne' | 'numSquaresTwo', index: number) => {
-    const threshold = 100; // Define a threshold for drag distance
-
+    const threshold = 5; // Define a threshold for drag distance
     // Check if the square has been dragged sufficiently
     if (Math.abs(info.offset.y) > threshold) {
       if (numSquares === 'numSquaresOne' && numSquaresOne > 1) {
@@ -99,14 +96,23 @@ export default function Index() {
   return (
     <div className="gradient-bg h-screen flex flex-col spotlight">
       <Drawer
-        title={undefined}
         placement='left'
         closable={false}
         onClose={onClose}
+        keyboard={true}
         open={open}
         style={{ backgroundColor: '#00162a', color: "white" }}
       >
-        <Typography.Title level={3} style={{ color: 'white' }}>Interaction Modes</Typography.Title>
+        <div className="flex justify-between">
+          <Typography.Title level={4} style={{ color: 'white' }} className="mt-3">Comparison Operator Game</Typography.Title>
+          <Button type="text" onClick={onClose} className="mb-1 p-0 text-white hover:text-grey-500">{icons['Close']}</Button>
+        </div>
+        <div className="flex flex-col gap-2 mb-8">
+          <p>This game is to teach you how the comparison operators work. These operators are {">"}, =, {"<"}.</p>
+          <p>Read the instructions below to know how to play.</p>
+        </div>
+
+        <Typography.Title level={4} style={{ color: 'white' }}>Interaction Modes</Typography.Title>
         <div className="flex flex-col gap-8">
           <div>
             <span className="flex gap-2">{icons["Ban"]}<Typography.Title level={5} style={{ color: 'white' }}>No Interaction Mode</Typography.Title></span>
@@ -135,6 +141,7 @@ export default function Index() {
             </ul>
           </div>
           <div>
+            <Typography.Title level={4} style={{ color: 'white' }}>Animation Mode</Typography.Title>
             <span className="flex gap-2">{icons["Play"]}<Typography.Title level={5} style={{ color: 'white' }}>Play Comparison Animation</Typography.Title></span>
             <ul className="list-disc pl-5">
               <li>You will not be able to play the comparison until you have drawn both lines required in the Draw / Compare Mode</li>
@@ -154,7 +161,7 @@ export default function Index() {
       />
       <Canvas
         interaction={interaction}
-        availableHeight={canvasAvailableHight}
+        availableHeight={canvasAvailableHeight}
         coordinates={getCoordinates()}
         changeReadyForComparison={(ready: boolean) => setReadyForComparison(ready)}
         startComparison={startComparison}

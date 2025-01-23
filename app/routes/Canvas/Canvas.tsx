@@ -226,13 +226,17 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const beginDraw = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
         e.preventDefault();
-        setOpacity(1)
-        if (contextReference.current) {
-            const { offsetX, offsetY } = getPosition(e)
-            setStartPosition({ x: offsetX, y: offsetY });
-            contextReference.current.beginPath();
-            contextReference.current.moveTo(offsetX, offsetY);
-            setIsPressed(true);
+        const context = contextReference.current;
+        if (context) {
+            context.clearRect(0, 0, canvasReference.current!.width, canvasReference.current!.height);
+            setOpacity(1)
+            if (context) {
+                const { offsetX, offsetY } = getPosition(e)
+                setStartPosition({ x: offsetX, y: offsetY });
+                context.beginPath();
+                context.moveTo(offsetX, offsetY);
+                setIsPressed(true);
+            }
         }
     };
 
@@ -341,7 +345,8 @@ const Canvas = (props: { [x: string]: any; }) => {
 
     const getPosition = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
         if ('touches' in e) {
-            const touch = e.touches[0];
+            const touch = e.touches[0] ? e.touches[0] : e.changedTouches[0];
+            console.log(touch)
             const rect = canvasReference.current?.getBoundingClientRect();
             const offsetX = touch.clientX - (rect?.left || 0);
             const offsetY = touch.clientY - (rect?.top || 0);
